@@ -1,0 +1,105 @@
+# Spring Boot应用配置文件 - 配置数据库、Redis、JWT等
+server:
+  port: 8080
+  address: 0.0.0.0  # 绑定到所有网络接口，允许局域网访问
+  # 注意：/api 前缀由 config/WebConfig.java 的 addPathPrefix 统一添加
+  # （不再用 context-path，否则静态资源/前端 SPA 无法挂在根路径 /）
+
+spring:
+  application:
+    name: anime-website
+  
+  # 数据库配置 - 请根据你的MySQL配置修改用户名和密码
+  datasource:
+    url: jdbc:mysql://localhost:3306/anime_website?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: 1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # JPA配置
+  jpa:
+    hibernate:
+      ddl-auto: update  # 开发环境使用update，生产环境建议使用validate
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect  # 使用MySQL8方言
+        format_sql: true
+        jdbc:
+          batch_size: 20  # 批量操作优化
+        order_inserts: true
+        order_updates: true
+    open-in-view: false
+    
+  # Redis配置
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password: 
+      database: 0
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+          
+  # 文件上传配置
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+  # 邮件配置
+  mail:
+    host: smtp.qq.com  # QQ邮箱SMTP服务器
+    port: 587
+    username: 3394277833@qq.com  # 发送邮件的QQ邮箱
+    password: fsttycarycmkciae     # QQ邮箱授权码（不是登录密码）
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 3000
+          writetimeout: 5000
+
+# JWT配置
+jwt:
+  secret: mySecretKey123456789012345678901234567890
+  expiration: 86400000 # 24小时，单位毫秒
+  refresh-expiration: 604800000 # 7天，单位毫秒
+
+# 日志配置
+logging:
+  level:
+    com.anime.website: DEBUG
+    org.springframework.security: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# 跨域配置
+cors:
+  allowed-origins:
+    - http://localhost:5173
+    - http://localhost:3000
+    - http://10.7.228.29:5173  # 局域网IP + 前端端口（当前局域网IP）
+    - http://10.7.228.29:3000
+  allowed-methods:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+    - OPTIONS
+  allowed-headers: "*"
+  allow-credentials: true
+
+# 文件存储配置
+file:
+  upload-dir: ./uploads
+  base-url: http://localhost:8080/api/files

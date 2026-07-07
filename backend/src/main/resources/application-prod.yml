@@ -1,0 +1,38 @@
+# ============================================================
+# 生产环境配置 (Spring profile: prod)
+# 用法：SPRING_PROFILES_ACTIVE=prod
+# Render 等平台通过环境变量注入数据库与密钥；本地验证时未设环境变量则用下面的默认值（指向本地 MySQL）。
+# ============================================================
+
+server:
+  # Render 通过 $PORT 环境变量指定监听端口
+  # /api 前缀由 WebConfig.addPathPrefix 统一添加，应用挂在根路径 /，前端 SPA 由根路径提供
+  port: ${PORT:8080}
+
+spring:
+  # 数据库 —— 全部读环境变量，未设时回退到本地默认值（仅本地验证用）
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/anime_website?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true}
+    username: ${SPRING_DATASOURCE_USERNAME:root}
+    password: ${SPRING_DATASOURCE_PASSWORD:1234}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      # 首次部署自动建表；后续可改为 validate
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: false
+
+# 应用自定义开关
+app:
+  db:
+    # 生产环境关闭 DatabaseInitializer（它依赖缺失的脚本且硬编码库名，仅本地开发用）
+    auto-init: false
+
+# JWT 密钥读环境变量（Render 设置 JWT_SECRET），未设则回退到开发默认值
+jwt:
+  secret: ${JWT_SECRET:mySecretKey123456789012345678901234567890}

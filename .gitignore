@@ -1,0 +1,29 @@
+# === 构建产物 ===
+frontend/node_modules/
+frontend/dist/
+backend/target/
+backend/src/main/resources/static/
+*.jar
+
+# === IDE / 编辑器 ===
+.idea/
+.vscode/
+*.iml
+*.swp
+
+# === 系统 / 临时 ===
+.DS_Store
+Thumbs.db
+*.log
+.playwright-mcp/
+
+# === 项目资料图（部署不需要，仅本地留存）===
+实体图/
+流程图/
+用例图/
+缩略类图/
+
+# === 敏感 / 本地配置 ===
+application-local.yml
+*.env
+.firewall_*

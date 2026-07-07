@@ -1,0 +1,130 @@
+/* 蓝白色主题（默认） */
+:root {
+  /* 主色调 - 蓝色系 (78,171,230) */
+  --theme-primary: #4EABE6;
+  --theme-primary-light: #7BC2ED;
+  --theme-primary-dark: #3A8BB8;
+  --theme-primary-rgb: 78, 171, 230;
+
+  /* 背景色 - 白色系 */
+  --theme-background: #ffffff;
+  --theme-background-soft: #f8f9fa;
+  --theme-background-mute: #f2f3f5;
+  --theme-background-rgb: 255, 255, 255;
+
+  /* 文字颜色 */
+  --theme-text-primary: #303133;
+  --theme-text-regular: #606266;
+  --theme-text-secondary: #909399;
+  --theme-text-placeholder: #c0c4cc;
+
+  /* 导航栏和搜索框专用颜色 - 亮色主题下为白色 */
+  --theme-nav-text: #ffffff;
+  --theme-nav-text-secondary: rgba(255, 255, 255, 0.7);
+
+  /* 轮播图专用颜色 - 亮色主题下为纯白色 */
+  --theme-banner-text: #ffffff;
+  --theme-banner-text-secondary: #ffffff;
+
+  /* 边框颜色 */
+  --theme-border: #dcdfe6;
+  --theme-border-light: #e4e7ed;
+  --theme-border-lighter: #ebeef5;
+
+  /* 渐变色 - 蓝色系渐变 */
+  --theme-gradient: linear-gradient(135deg, #4EABE6 0%, #3A8BB8 100%);
+  --theme-gradient-reverse: linear-gradient(135deg, #3A8BB8 0%, #4EABE6 100%);
+
+  /* 阴影 */
+  --theme-shadow: 0 2px 12px 0 rgba(78, 171, 230, 0.2);
+  --theme-shadow-light: 0 2px 4px rgba(78, 171, 230, 0.12), 0 0 6px rgba(78, 171, 230, 0.08);
+
+  /* 状态颜色 */
+  --theme-success: #67c23a;
+  --theme-warning: #e6a23c;
+  --theme-danger: #f56c6c;
+  --theme-info: #909399;
+}
+
+/* 暗色粉色主题 */
+.theme-dark {
+  /* 主色调 - 粉色系 (234,122,153) */
+  --theme-primary: #EA7A99;
+  --theme-primary-light: #F09BB3;
+  --theme-primary-dark: #D65A7F;
+  --theme-primary-rgb: 234, 122, 153;
+
+  /* 背景色 - 深色系 */
+  --theme-background: #1a1a1a;
+  --theme-background-soft: #2d2d2d;
+  --theme-background-mute: #3a3a3a;
+  --theme-background-rgb: 26, 26, 26;
+
+  /* 文字颜色 - 浅色系 */
+  --theme-text-primary: #c8c8c8; /* 页面内容文字稍微深一点 */
+  --theme-text-regular: #b8b8b8;
+  --theme-text-secondary: #a8a8a8;
+  --theme-text-placeholder: #989898;
+
+  /* 导航栏和搜索框专用颜色 - 暗色主题下再调深一点 */
+  --theme-nav-text: #d0d0d0; /* 导航栏文字再深一点 */
+  --theme-nav-text-secondary: #b8b8b8; /* 导航栏次要文字再深一点 */
+
+  /* 轮播图专用颜色 - 暗色主题下调整层次 */
+  --theme-banner-text: #c8c8c8; /* 动漫名称稍微深一点，与页面内容一致 */
+  --theme-banner-text-secondary: #d0d0d0; /* 简介保持较亮 */
+
+  /* 边框颜色 - 深色系 */
+  --theme-border: #4a4a4a;
+  --theme-border-light: #5a5a5a;
+  --theme-border-lighter: #6a6a6a;
+
+  /* 渐变色 - 粉色系渐变 */
+  --theme-gradient: linear-gradient(135deg, #EA7A99 0%, #D65A7F 100%);
+  --theme-gradient-reverse: linear-gradient(135deg, #D65A7F 0%, #EA7A99 100%);
+
+  /* 阴影 - 深色带粉色调 */
+  --theme-shadow: 0 2px 12px 0 rgba(234, 122, 153, 0.3);
+  --theme-shadow-light: 0 2px 4px rgba(234, 122, 153, 0.2), 0 0 6px rgba(234, 122, 153, 0.15);
+
+  /* 状态颜色 - 暗色主题适配 */
+  --theme-success: #95d475;
+  --theme-warning: #f4d03f;
+  --theme-danger: #ff7675;
+  --theme-info: #b3b3b3;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  font-weight: normal;
+}
+
+body {
+  min-height: 100vh;
+  color: var(--theme-text-primary);
+  background: var(--theme-background);
+  transition:
+    color 0.5s,
+    background-color 0.5s;
+  line-height: 1.6;
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    'Fira Sans',
+    'Droid Sans',
+    'Helvetica Neue',
+    sans-serif;
+  font-size: 15px;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}

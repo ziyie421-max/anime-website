@@ -1,0 +1,18 @@
+# 缩小构建上下文，避免把无用/超大目录传给 Docker 守护进程
+**/node_modules
+**/target
+**/.idea
+**/.vscode
+.git
+.gitignore
+**/*.log
+
+# 项目内的图片/文档资料，部署不需要
+实体图
+流程图
+用例图
+缩略类图
+.playwright-mcp
+
+# 本地 SQL 脚本（部署到 TiDB 时手动导入，不进镜像）
+anime_website_database.sql
