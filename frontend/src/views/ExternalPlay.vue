@@ -398,24 +398,31 @@ const setupVideoPlayer = () => {
       }
     })
 
+    // 错误连续触发计数（HLS.js manifest 加载失败可能多次触发 error 事件）
+    let errorCount = 0
+    let lastErrorTime = 0
+
     dplayer.value.on('error', (info) => {
-      console.warn('DPlayer播放事件:', info)
+      const now = Date.now()
+      console.warn('DPlayer播放错误事件:', info, '当前代理模式:', useProxy.value)
 
-      // 检查是否是真正的致命错误
+      // 检查视频元素本身的错误
       const videoEl = dplayer.value?.video
-      const hasFatalError = videoEl && videoEl.error
+      const hasVideoError = videoEl && videoEl.error
 
-      // 如果是网络错误但视频仍在播放，不显示错误
-      if (info && typeof info === 'object' && !hasFatalError) {
-        console.log('检测到非致命错误，视频仍可正常播放，忽略错误提示')
-        return
-      }
+      // 智能回退：如果当前是直连且未尝试过代理，自动切换到代理重试
+      // 不依赖 videoEl.error（HLS.js 网络失败时 videoEl.error 可能为 null，但 manifest 确实拉不到）
+      if (!useProxy.value && currentPlayUrl.value) {
+        // 限制 3 秒内只触发一次自动切换，避免 HLS.js 多次报错导致循环重建
+        if (now - lastErrorTime > 3000) {
+          errorCount = 0
+        }
+        errorCount++
+        lastErrorTime = now
 
-      // 真正的播放错误
-      if (hasFatalError || info) {
-        // 智能回退：如果当前是直连且未尝试过代理，自动切换到代理重试
-        if (!useProxy.value && currentPlayUrl.value) {
-          console.log('⚠️ 直连失败，自动切换到代理模式重试...')
+        // 第 1 次错误就立刻切换（不再等到"致命错误"才切换）
+        if (errorCount <= 2) {
+          console.log('⚠️ 直连失败（错误次数:' + errorCount + '），自动切换到代理模式重试...')
           useProxy.value = true
           proxyAutoSwitched.value = true
           setPlayerStatus('info', '网络受限', '检测到网络限制，正在通过服务器代理重试...')
@@ -432,22 +439,24 @@ const setupVideoPlayer = () => {
           }, 500)
           return
         }
-
-        // 已经在使用代理或无法重试，显示具体错误
-        let errorMessage = '视频播放出错'
-        if (hasFatalError) {
-          switch (videoEl.error.code) {
-            case 1: errorMessage = '视频播放被中止'; break
-            case 2: errorMessage = '网络错误，请检查网络连接'; break
-            case 3: errorMessage = '视频解码错误，请尝试其他播放源'; break
-            case 4: errorMessage = '视频格式不支持，请尝试其他播放源'; break
-            default: errorMessage = '未知播放错误'
-          }
-        }
-        console.error('视频播放致命错误:', errorMessage)
-        setPlayerStatus('error', '播放错误', errorMessage)
-        ElMessage.error(errorMessage)
       }
+
+      // 已经在使用代理（或回退后仍然失败），显示具体错误
+      let errorMessage = '视频播放出错'
+      if (hasVideoError) {
+        switch (videoEl.error.code) {
+          case 1: errorMessage = '视频播放被中止'; break
+          case 2: errorMessage = '网络错误，请检查网络连接'; break
+          case 3: errorMessage = '视频解码错误，请尝试其他播放源'; break
+          case 4: errorMessage = '视频格式不支持，请尝试其他播放源'; break
+          default: errorMessage = '未知播放错误'
+        }
+      } else if (useProxy.value) {
+        errorMessage = '代理也播放失败，可能是视频源暂时不可用'
+      }
+      console.error('视频播放致命错误:', errorMessage)
+      setPlayerStatus('error', '播放错误', errorMessage)
+      ElMessage.error(errorMessage)
     })
 
     dplayer.value.on('loadstart', () => {

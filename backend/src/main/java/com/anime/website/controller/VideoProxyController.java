@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -111,8 +112,8 @@ public class VideoProxyController {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
             }
 
-            // 4. 流式代理
-            log.info("视频代理开始流 | url={}", videoUrl.substring(0, Math.min(80, videoUrl.length())));
+            // 4. 代理请求
+            log.info("视频代理开始 | url={}", videoUrl.substring(0, Math.min(80, videoUrl.length())));
 
             URL url = URI.create(videoUrl).toURL();
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -134,6 +135,22 @@ public class VideoProxyController {
             String contentType = conn.getContentType() != null ? conn.getContentType() : MediaType.APPLICATION_OCTET_STREAM_VALUE;
             long contentLength = conn.getContentLengthLong();
 
+            // ----- m3u8 manifest 特殊处理：下载全文 → 重写内部相对 URL 为代理 URL -----
+            if (videoUrl.contains(".m3u8")) {
+                String manifest = downloadAndRewriteManifest(conn, videoUrl);
+                if (manifest == null) {
+                    return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(null);
+                }
+                byte[] bytes = manifest.getBytes(StandardCharsets.UTF_8);
+                HttpHeaders headers = new HttpHeaders();
+                headers.setContentType(new MediaType("application", "x-mpegURL"));
+                headers.setContentLength(bytes.length);
+                headers.add("Access-Control-Allow-Origin", "*");
+                headers.setCacheControl("no-cache");
+                return new ResponseEntity<>(bytes, headers, HttpStatus.OK);
+            }
+
+            // ----- ts / mp4 等其他格式：流式传输 -----
             final HttpURLConnection finalConn = conn;
             StreamingResponseBody responseBody = out -> {
                 try (InputStream in = finalConn.getInputStream()) {
@@ -157,18 +174,65 @@ public class VideoProxyController {
             }
             headers.add("Access-Control-Allow-Origin", "*");
             headers.add("Access-Control-Expose-Headers", "Content-Length,Content-Type");
-            // m3u8 不缓存（实时更新），ts 段可缓存
-            if (videoUrl.contains(".m3u8")) {
-                headers.setCacheControl("no-cache");
-            } else {
-                headers.setCacheControl("public, max-age=3600");
-            }
+            headers.setCacheControl("public, max-age=3600");
 
             return new ResponseEntity<>(responseBody, headers, HttpStatus.OK);
 
         } catch (Exception e) {
             log.error("视频代理异常 | {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    /**
+     * 下载 m3u8 manifest 全文，并把内部相对 URL 重写为代理 URL
+     * 这样 DPlayer/HLS.js 请求子 manifest / ts 段时也会走代理，彻底绕过用户本地网络限制
+     */
+    private String downloadAndRewriteManifest(HttpURLConnection conn, String videoUrl) {
+        try (InputStream in = conn.getInputStream();
+             ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+            byte[] buf = new byte[8192];
+            int len;
+            while ((len = in.read(buf)) != -1) {
+                baos.write(buf, 0, len);
+            }
+            String content = baos.toString(StandardCharsets.UTF_8.name());
+            conn.disconnect();
+
+            // 原始视频 URL 的目录前缀，用于把相对 URL 还原为绝对 URL
+            String baseDir = videoUrl.substring(0, videoUrl.lastIndexOf('/') + 1);
+            // 当前代理端点前缀
+            String proxyPrefix = "/api/video/proxy?url=";
+
+            StringBuilder sb = new StringBuilder();
+            for (String line : content.split("\n")) {
+                String trimmed = line.trim();
+                // 跳过空行和注释行（#EXTM3U、#EXT-X-... 等）
+                if (trimmed.isEmpty() || trimmed.startsWith("#")) {
+                    sb.append(line).append("\n");
+                    continue;
+                }
+                // 这一行是 URL（子 manifest 或 ts 片段）
+                String absoluteUrl;
+                if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+                    absoluteUrl = trimmed;
+                } else if (trimmed.startsWith("//")) {
+                    absoluteUrl = "https:" + trimmed;
+                } else {
+                    // 相对 URL → 拼接为绝对 URL
+                    absoluteUrl = baseDir + trimmed;
+                }
+                // 编码为 Base64 并拼上代理前缀
+                String encoded = Base64.getUrlEncoder().withoutPadding()
+                        .encodeToString(absoluteUrl.getBytes(StandardCharsets.UTF_8));
+                sb.append(proxyPrefix).append(encoded).append("\n");
+                log.debug("m3u8 重写 URL | {} → proxy", absoluteUrl.substring(0, Math.min(60, absoluteUrl.length())));
+            }
+            return sb.toString();
+        } catch (IOException e) {
+            log.warn("m3u8 manifest 下载失败 | {}", e.getMessage());
+            conn.disconnect();
+            return null;
         }
     }
 
