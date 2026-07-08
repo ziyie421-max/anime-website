@@ -445,14 +445,57 @@ onUnmounted(() => {
   margin-right: 8px;
 }
 
-/* 响应式设计 */
-@media (max-width: 480px) {
+/* 响应式设计 - 平板及移动端 */
+@media (max-width: 768px) {
+  .register-page {
+    padding: 16px;
+  }
+
   .register-card {
-    padding: 30px 20px;
+    padding: 28px 20px;
+  }
+
+  .register-header {
+    margin-bottom: 20px;
   }
 
   .register-header h2 {
-    font-size: 24px;
+    font-size: 22px;
+    margin-bottom: 8px;
+  }
+
+  .register-header p {
+    font-size: 13px;
+  }
+
+  .register-form {
+    margin-bottom: 16px;
+  }
+
+  /* 验证码输入 + 发送按钮横向排列，确保按钮可收缩不溢出 */
+  .email-code-container {
+    gap: 8px;
+  }
+
+  .send-code-btn {
+    min-width: 100px;
+    flex-shrink: 0;
+  }
+}
+
+/* 响应式设计 */
+@media (max-width: 480px) {
+  .register-card {
+    padding: 24px 16px;
+  }
+
+  .register-header h2 {
+    font-size: 20px;
+  }
+
+  /* 极窄屏按钮文案缩短空间，进一步收紧 */
+  .send-code-btn {
+    min-width: 88px;
   }
 }
 

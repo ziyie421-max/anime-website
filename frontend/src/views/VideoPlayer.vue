@@ -252,4 +252,54 @@ onMounted(() => {
 .comment-wrapper {
   width: 100%;
 }
+
+/* 响应式 - 移动端适配 */
+@media (max-width: 768px) {
+  .video-player-page {
+    padding: 12px;
+  }
+
+  /* 面包屑可能折行，允许换行并收紧 */
+  .breadcrumb {
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+    font-size: 13px;
+  }
+
+  /* 固定 600px 高度在竖屏手机上比例失调，改为 16:9 自适应 */
+  .video-container {
+    height: auto;
+    aspect-ratio: 16 / 9;
+    margin-bottom: 14px;
+  }
+
+  .episodes-section {
+    padding: 14px;
+    margin-bottom: 14px;
+  }
+
+  .episodes-header {
+    margin-bottom: 12px;
+  }
+
+  .episodes-title {
+    font-size: 16px;
+  }
+
+  /* minmax(100px) 偏大，窄屏收紧到约 80px 保证一行至少 3 个 */
+  .episodes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 8px;
+  }
+
+  .episode-item {
+    padding: 10px 8px;
+    font-size: 13px;
+  }
+
+  .interaction-section {
+    gap: 14px;
+  }
+}
 </style>

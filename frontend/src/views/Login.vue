@@ -200,14 +200,43 @@ const goToRegister = () => {
   margin-right: 8px;
 }
 
-/* 响应式设计 */
-@media (max-width: 480px) {
+/* 响应式设计 - 平板及移动端 */
+@media (max-width: 768px) {
+  .login-page {
+    padding: 16px;
+  }
+
+  /* 卡片内边距过大，减小；max-width:400px 保留 */
   .login-card {
-    padding: 30px 20px;
+    padding: 28px 20px;
+  }
+
+  .login-header {
+    margin-bottom: 20px;
   }
 
   .login-header h2 {
-    font-size: 24px;
+    font-size: 22px;
+    margin-bottom: 8px;
+  }
+
+  .login-header p {
+    font-size: 13px;
+  }
+
+  .login-form {
+    margin-bottom: 16px;
+  }
+}
+
+/* 响应式设计 */
+@media (max-width: 480px) {
+  .login-card {
+    padding: 24px 16px;
+  }
+
+  .login-header h2 {
+    font-size: 20px;
   }
 }
 

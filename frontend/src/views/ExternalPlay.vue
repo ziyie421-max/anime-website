@@ -1088,12 +1088,67 @@ onUnmounted(() => {
     padding: 10px;
   }
 
-  .episode-list {
-    justify-content: center;
+  .header-section {
+    gap: 10px;
+    margin-bottom: 16px;
+    padding: 10px 4px;
   }
 
-  .play-controls .el-button {
-    margin: 5px;
+  .anime-title {
+    font-size: 17px;
+    line-height: 1.3;
+  }
+
+  /* 播放器移动端按 16:9 自适应高度，避免固定 500px 过高 */
+  .player-container {
+    border-radius: 8px;
+  }
+
+  .dplayer-container {
+    height: auto;
+    aspect-ratio: 16 / 9;
+    border-radius: 8px;
+  }
+
+  .episode-selector {
+    margin-top: 16px;
+    margin-bottom: 14px;
+    padding: 14px 12px;
+    border-radius: 10px;
+  }
+
+  .episode-selector h3 {
+    font-size: 1rem;
+    margin-bottom: 12px;
+  }
+
+  .episode-list {
+    gap: 8px;
+    max-height: 240px;
+    padding: 2px;
+  }
+
+  .episode-btn {
+    min-width: 58px;
+    margin: 0;
+  }
+
+  .interaction-section {
+    margin-top: 16px;
+    padding: 14px 12px;
+    gap: 14px;
+    border-radius: 10px;
+  }
+
+  /* DPlayer 内置剧集列表面板移动端收窄 */
+  :deep(.dplayer-episode-panel) {
+    width: 260px;
+    max-height: 320px;
+    right: 8px;
+  }
+
+  :deep(.dplayer-episode-panel-content) {
+    max-height: 240px;
   }
 }
 

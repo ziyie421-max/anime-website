@@ -12,6 +12,7 @@ html, body {
   padding: 0;
   min-height: 100vh;
   background: var(--theme-background);
+  overflow-x: hidden; /* 移动端防横向溢出兜底 */
 }
 
 #app {

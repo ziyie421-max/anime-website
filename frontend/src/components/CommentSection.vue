@@ -585,5 +585,59 @@ onMounted(() => {
   text-align: center;
   margin-top: 20px;
 }
+
+/* 响应式 - 移动端适配 */
+@media (max-width: 768px) {
+  .comment-section {
+    padding: 14px;
+  }
+
+  .section-header h3 {
+    font-size: 16px;
+    margin-bottom: 14px;
+  }
+
+  .comment-input-box {
+    gap: 8px;
+    margin-bottom: 18px;
+    padding-bottom: 16px;
+  }
+
+  .comment-item {
+    margin-bottom: 16px;
+  }
+
+  .comment-main,
+  .reply-item {
+    gap: 10px;
+  }
+
+  .comment-header {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .comment-actions {
+    gap: 14px;
+  }
+
+  /* 回复列表缩进偏大，移动端收紧避免窄屏溢出 */
+  .replies-list {
+    margin-left: 28px;
+    padding-left: 12px;
+  }
+
+  .reply-input {
+    padding: 10px;
+  }
+
+  .reply-actions {
+    gap: 6px;
+  }
+
+  .load-more {
+    margin-top: 16px;
+  }
+}
 </style>
 

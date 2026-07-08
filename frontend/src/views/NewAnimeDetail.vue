@@ -741,37 +741,112 @@ onMounted(() => {
 
 /* 响应式设计 */
 @media (max-width: 768px) {
+  .breadcrumb {
+    padding: 0 14px;
+    font-size: 13px;
+  }
+
   .detail-content {
     flex-direction: column;
-    gap: 20px;
-    padding: 20px 15px;
+    gap: 18px;
+    padding: 18px 14px;
+    margin-top: 14px;
+    border-radius: 0;
+  }
+
+  .poster-section {
+    display: flex;
+    justify-content: center;
   }
 
   .poster-container {
-    width: 200px;
-    margin: 0 auto;
+    width: 160px;
+    margin: 0;
+  }
+
+  .anime-title {
+    font-size: 20px;
+    line-height: 1.3;
+  }
+
+  .anime-subtitle {
+    font-size: 14px;
+  }
+
+  .action-buttons {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .action-buttons .el-button {
+    padding: 8px 16px;
   }
 
   .details-grid {
     grid-template-columns: 1fr;
     gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .detail-label {
+    width: 48px;
+    font-size: 13px;
+  }
+
+  .detail-value {
+    font-size: 13px;
+    margin-left: 6px;
+  }
+
+  .description-section {
+    margin-top: 20px;
+  }
+
+  .section-title {
+    font-size: 16px;
+  }
+
+  .description-text {
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  .episodes-section,
+  .plot-section {
+    padding: 18px 14px;
+    margin: 14px 14px;
+    border-radius: 8px;
+  }
+
+  .episodes-title {
+    font-size: 17px;
   }
 
   .episodes-grid {
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 8px;
+  }
+
+  .episode-item {
+    padding: 9px 6px;
+    font-size: 13px;
   }
 
   .episodes-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
+    margin-bottom: 14px;
+    padding-bottom: 12px;
   }
 
-  /* 评分和评论区域响应式 */
+  .plot-text {
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  /* 评分和评论区域：移动端单列堆叠 */
   .interaction-section {
     grid-template-columns: 1fr;
-    padding: 0 15px;
+    margin: 14px 14px;
+    gap: 14px;
   }
 
   .rating-wrapper {

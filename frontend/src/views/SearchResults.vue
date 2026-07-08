@@ -680,24 +680,39 @@ onMounted(() => {
     padding: 10px;
   }
 
+  /* 移动端 2 列自适应宽度，避免固定 250px 撑出横向溢出 */
   .anime-grid {
-    grid-template-columns: repeat(2, 250px); /* 移动端2列，宽度250px */
-    gap: 25px; /* 移动端间距25px */
-    padding: 15px;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    padding: 6px;
   }
 
   .anime-poster {
-    height: 250px;
+    height: 200px;
   }
 
   .anime-info {
-    padding: 15px;
+    padding: 12px;
+  }
+
+  .anime-title {
+    font-size: 0.92rem;
   }
 
   /* 移动端分页器样式调整 */
   .custom-pagination {
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
+  }
+
+  .search-section {
+    margin-top: 10px;
+    margin-bottom: 24px;
+    padding: 0 4px;
+  }
+
+  .search-button {
+    padding: 0 18px !important;
   }
 }
 

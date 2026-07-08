@@ -504,9 +504,9 @@ onMounted(() => {
   }
 
   .anime-grid {
-    grid-template-columns: repeat(3, 280px); /* 中等屏幕3列，宽度280px */
-    gap: 30px; /* 中等屏幕间距30px */
-    padding: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); /* 自适应列，避免固定宽度平板溢出 */
+    gap: 24px;
+    padding: 16px;
   }
 }
 
@@ -520,13 +520,13 @@ onMounted(() => {
   }
 
   .anime-grid {
-    grid-template-columns: repeat(2, 250px); /* 移动端2列，宽度250px */
-    gap: 25px; /* 移动端间距25px */
-    padding: 15px;
+    grid-template-columns: repeat(2, 1fr); /* 移动端2列自适应，避免 250px 撑爆视口 */
+    gap: 12px;
+    padding: 8px;
   }
 
   .anime-poster {
-    height: 250px;
+    height: 200px;
   }
 
   /* 移动端分页器样式调整 */

@@ -342,5 +342,52 @@ onMounted(() => {
   justify-content: center;
   margin-top: 24px;
 }
+
+/* 响应式 - 移动端适配 */
+@media (max-width: 768px) {
+  .notifications-page {
+    padding: 12px;
+  }
+
+  .page-header {
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .page-header h1 {
+    font-size: 18px;
+    gap: 6px;
+  }
+
+  .header-actions {
+    gap: 10px;
+  }
+
+  .notification-item {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .notification-header {
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .notification-text {
+    font-size: 13px;
+  }
+
+  /* 未读圆点贴近右上角，避免与小屏内容重叠 */
+  .unread-dot {
+    top: 12px;
+    right: 12px;
+  }
+
+  .pagination {
+    margin-top: 18px;
+  }
+}
 </style>
 

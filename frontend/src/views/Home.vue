@@ -738,63 +738,125 @@ onMounted(() => {
 
 @media (max-width: 768px) {
   .content-container {
-    padding: 0 20px;
+    padding: 0 14px;
+  }
+
+  /* 轮播图移动端：降低高度，重置 PC 端负 margin/padding hack */
+  .banner-carousel {
+    margin-bottom: 30px;
+  }
+
+  .banner-carousel :deep(.el-carousel__container),
+  .banner-carousel :deep(.el-carousel__item) {
+    height: 460px !important;
   }
 
   .banner-item {
     flex-direction: column;
     padding: 0;
+    align-items: center;
   }
 
   .banner-poster {
     width: 100%;
-    height: 200px;
-    padding: 20px;
-    margin-left: 0; /* 移动端取消左边距 */
+    height: 250px;
+    padding: 18px 0 0;
+    margin-left: 0;
+  }
+
+  .banner-poster img {
+    width: 150px;
+    height: 232px;
+  }
+
+  /* 移动端遮罩改为自上而下加深，文字更易读 */
+  .banner-mask {
+    background: linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.25) 0%,
+      rgba(0, 0, 0, 0.55) 60%,
+      rgba(0, 0, 0, 0.7) 100%
+    );
   }
 
   .banner-content {
-    padding: 20px;
+    flex: 1;
+    padding: 10px 18px 18px;
     text-align: center;
   }
 
   .banner-text h1 {
-    font-size: 2.5rem;
+    font-size: 1.5rem;
+    margin-top: 0; /* 重置 PC 端 -400px */
+    margin-bottom: 0.6rem;
+    line-height: 1.25;
   }
 
   .banner-description {
-    font-size: 1.1rem;
-    max-width: 645px; /* 移动端也相应增加宽度 */
-    margin: 0 auto 2.5rem auto; /* 居中显示 */
+    font-size: 0.9rem;
+    margin: 0 auto 0.8rem auto;
+    margin-top: 0; /* 重置 PC 端 60px */
+    max-width: 100%;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
   .banner-actions {
-    flex-direction: column;
-    gap: 15px;
-    position: absolute; /* 移动端也使用绝对定位 */
-    bottom: 40px; /* 移动端距离底部40px */
-    left: 50%; /* 水平居中 */
-    transform: translateX(-50%); /* 完全居中 */
-    width: auto; /* 自适应宽度 */
+    position: static; /* 重置 PC 端绝对定位 */
+    transform: none;
+    left: auto;
+    bottom: auto;
+    justify-content: center;
   }
 
-  .quick-nav {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-    padding: 30px;
+  .info-btn {
+    padding: 8px 22px;
+    font-size: 0.95rem;
   }
 
   .anime-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+    gap: 12px;
+    padding: 8px 0;
   }
 
+  .anime-poster {
+    height: 210px;
+  }
 
+  .anime-info {
+    padding: 10px 12px;
+  }
+
+  .anime-title {
+    font-size: 0.92rem;
+  }
+
+  .section {
+    margin-bottom: 40px;
+  }
 
   .section-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 15px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 18px;
+    padding: 0 4px;
+    gap: 8px;
+  }
+
+  .section-header h3 {
+    font-size: 1.25rem;
+  }
+
+  .section-icon {
+    font-size: 1.5rem;
+  }
+
+  .more-btn {
+    font-size: 0.9rem;
   }
 }
 </style>

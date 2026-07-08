@@ -84,7 +84,7 @@ const performRealTimeSearch = async (keyword) => {
 
   try {
     isSearching.value = true
-    console.log('🔍 实时搜索开始，关键词:', keyword)
+    console.log('搜索开始，关键词:', keyword)
 
     // 调用量子资源API搜索
     const response = await externalAPI.searchAnime(keyword, 1)
@@ -296,13 +296,8 @@ const handleCommand = (command) => {
   }
 }
 
-// 导航菜单 - 移除首页按钮，用户可通过点击Logo回到首页
-const menuItems = [
-  { name: '日漫', path: '/japanese-anime' },
-  { name: '国漫', path: '/chinese-anime' },
-  { name: '美漫', path: '/western-anime' },
-  //{ name: '在线动漫', path: '/external' }
-]
+// 导航菜单 - 已移除日漫/国漫/美漫分类入口，用户可通过点击 Logo 回到首页
+const menuItems = []
 
 // 初始化认证状态和主题
 onMounted(async () => {
@@ -342,7 +337,7 @@ onMounted(async () => {
         <div class="search-box">
           <el-input
             v-model="searchKeyword"
-            placeholder="输入动漫名称，实时搜索..."
+            placeholder="输入动漫名称..."
             @keyup.enter="handleSearch"
             class="search-input"
             clearable
@@ -422,7 +417,7 @@ onMounted(async () => {
             @click="toggleTheme"
             :icon="isDarkTheme ? Sunny : Moon"
             circle
-            size="large"
+            size="default"
             class="theme-btn"
             :title="isDarkTheme ? '切换到蓝白色主题' : '切换到暗粉色主题'"
           />
@@ -456,8 +451,14 @@ onMounted(async () => {
             </el-dropdown>
           </template>
           <template v-else>
-            <el-button @click="$router.push('/login')">登录</el-button>
-            <el-button @click="$router.push('/register')">注册</el-button>
+            <el-button
+              @click="$router.push('/login')"
+              circle
+              size="default"
+              :icon="User"
+              class="theme-btn"
+              title="登录"
+            />
           </template>
         </div>
       </div>
@@ -783,6 +784,7 @@ onMounted(async () => {
   background: rgba(255, 255, 255, 0.2) !important;
   border: 1px solid rgba(255, 255, 255, 0.3) !important;
   color: var(--theme-nav-text) !important; /* 使用导航栏专用颜色 */
+  border-radius: 50% !important; /* 主题/登录按钮统一纯圆形 */
   transition: all 0.3s ease;
 }
 
@@ -902,34 +904,72 @@ onMounted(async () => {
 }
 
 @media (max-width: 768px) {
+  /* 单行紧凑导航：logo + 搜索框(占满中间) + 主题 + 用户区 */
   .header-container {
-    padding: 0 20px;
-    height: 60px;
+    height: 54px;
+    padding: 0 12px;
+    gap: 8px;
   }
 
   .logo {
-    margin-right: 20px;
+    margin-right: 0;
+    flex-shrink: 0;
   }
 
   .logo h1 {
-    font-size: 1.4rem;
+    font-size: 1.2rem;
   }
 
   .nav-menu {
     display: none;
   }
 
+  /* 搜索框占满中间剩余空间 */
+  .search-box {
+    flex: 1;
+    margin-right: 0;
+    min-width: 0;
+  }
+
   .search-input {
-    width: 200px;
+    width: 100%;
+  }
+
+  /* 搜索结果下拉框在窄屏下保证最小可读宽度 */
+  .search-results-dropdown {
+    min-width: 260px;
+    right: auto;
+  }
+
+  .theme-toggle {
+    margin-right: 0;
+    flex-shrink: 0;
   }
 
   .user-area {
-    gap: 10px;
+    gap: 6px;
+    flex-shrink: 0;
   }
 
   .user-area :deep(.el-button) {
-    padding: 8px 16px;
-    font-size: 0.9rem;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+
+  /* 移动端隐藏用户名，只保留头像 */
+  .username {
+    display: none;
+  }
+
+  .notification-bell {
+    width: 34px;
+    height: 34px;
+    padding: 6px;
+  }
+
+  .user-info {
+    padding: 4px 6px;
+    gap: 4px;
   }
 }
 </style>

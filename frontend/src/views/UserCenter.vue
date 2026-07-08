@@ -464,18 +464,48 @@ onMounted(() => {
 
 /* 响应式 */
 @media (max-width: 768px) {
+  .user-center {
+    padding: 12px;
+  }
+
+  .page-header h1 {
+    font-size: 20px;
+  }
+
   .user-header {
     flex-direction: column;
     text-align: center;
+    gap: 14px;
   }
 
   .stats-row {
     flex-wrap: wrap;
     gap: 10px;
+    justify-content: space-between;
   }
 
   .stat-item {
-    padding: 10px 15px;
+    flex: 1 1 30%;
+    padding: 10px 8px;
+  }
+
+  .stat-value {
+    font-size: 20px;
+  }
+
+  .anime-list {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .anime-cover {
+    height: 160px;
+  }
+
+  /* 对话框移动端自适应宽度，避免固定 450px 溢出 */
+  :deep(.el-dialog) {
+    width: 92% !important;
+    max-width: 450px;
   }
 }
 

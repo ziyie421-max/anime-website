@@ -471,29 +471,59 @@ onMounted(() => {
 /* 响应式设计 */
 @media (max-width: 768px) {
   .schedule-header {
-    padding: 16px;
-    flex-direction: column;
-    gap: 12px;
-    align-items: stretch;
+    padding: 12px 14px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
   }
 
+  .schedule-title {
+    font-size: 1.15rem;
+  }
+
+  /* 周标签横滑：缩小每项宽度，确保窄屏内可横向滚动而不撑开页面 */
   .weekday-tabs {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    min-width: 0;
   }
 
   .weekday-tab {
-    min-width: 80px;
-    padding: 12px 8px;
+    flex: 0 0 auto;
+    min-width: 52px;
+    padding: 10px 6px;
   }
 
+  .weekday-name {
+    font-size: 0.8rem;
+  }
+
+  .weekday-date {
+    font-size: 0.7rem;
+  }
+
+  .anime-count {
+    font-size: 0.68rem;
+  }
+
+  /* 移动端动漫列表：固定 2 列卡片 */
   .anime-list {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 12px;
-    padding: 16px;
+    padding: 12px;
   }
 
   .anime-cover {
-    height: 180px;
+    height: 150px;
+  }
+
+  .anime-info {
+    padding: 8px 10px;
+  }
+
+  .anime-title {
+    font-size: 0.82rem;
   }
 }
 </style>

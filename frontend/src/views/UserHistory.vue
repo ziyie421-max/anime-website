@@ -360,8 +360,29 @@ onMounted(() => {
 
 /* 响应式 */
 @media (max-width: 768px) {
+  .user-history {
+    padding: 12px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 14px;
+  }
+
+  .page-header h1 {
+    font-size: 18px;
+  }
+
+  .history-list {
+    gap: 12px;
+  }
+
   .history-item {
     flex-wrap: wrap;
+    padding: 12px;
+    gap: 12px;
   }
 
   .anime-cover {
@@ -369,16 +390,26 @@ onMounted(() => {
     height: 110px;
   }
 
+  .anime-title {
+    font-size: 0.95rem;
+    margin-bottom: 6px;
+  }
+
+  .episode-info,
+  .watch-time {
+    font-size: 12px;
+  }
+
+  /* 操作按钮换行到下一行，横向排列避免溢出 */
   .action-buttons {
     flex-direction: row;
     width: 100%;
     justify-content: flex-end;
+    gap: 8px;
   }
 
-  .page-header {
-    flex-direction: column;
-    gap: 10px;
-    align-items: flex-start;
+  .pagination {
+    margin-top: 20px;
   }
 }
 </style>

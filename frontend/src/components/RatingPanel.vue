@@ -306,5 +306,43 @@ onMounted(() => {
 .user-rating :deep(.el-button--danger.is-link:hover) {
   color: var(--theme-danger) !important;
 }
+
+/* 响应式 - 移动端适配 */
+@media (max-width: 768px) {
+  .rating-panel {
+    padding: 14px;
+  }
+
+  .rating-stats {
+    gap: 12px;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+  }
+
+  /* 36px 大字号在窄屏偏大，适度缩小 */
+  .score-value {
+    font-size: 28px;
+  }
+
+  .score-max {
+    font-size: 14px;
+  }
+
+  .rating-count {
+    font-size: 12px;
+  }
+
+  .rating-label {
+    font-size: 13px;
+  }
+
+  .user-score-display {
+    font-size: 14px;
+  }
+
+  .login-hint {
+    padding: 10px;
+  }
+}
 </style>
 

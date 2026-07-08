@@ -322,15 +322,46 @@ onMounted(() => {
 
 /* 响应式 */
 @media (max-width: 768px) {
-  .favorites-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-    gap: 12px;
+  .user-favorites {
+    padding: 12px;
   }
-  
+
   .page-header {
     flex-direction: column;
     gap: 10px;
     align-items: flex-start;
+    margin-bottom: 14px;
+  }
+
+  .page-header h1 {
+    font-size: 18px;
+  }
+
+  /* 固定 minmax 偏大改为稳定 2 列，避免窄屏溢出 */
+  .favorites-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .anime-info {
+    padding: 10px;
+  }
+
+  .anime-title {
+    font-size: 0.85rem;
+  }
+
+  .collect-time {
+    font-size: 11px;
+  }
+
+  /* 触屏设备移除 hover 才显示删除按钮的限制 */
+  .remove-btn {
+    opacity: 1;
+  }
+
+  .pagination {
+    margin-top: 20px;
   }
 }
 </style>
