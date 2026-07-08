@@ -14,7 +14,10 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -38,22 +41,30 @@ public class VideoProxyController {
      * 允许代理的视频 CDN 域名关键字白名单
      * URL 中包含任一关键字即放行（宽松策略，避免误拦合法视频源）
      */
-    private static final Set<String> ALLOWED_KEYWORDS = Set.of(
-            "m3u8", "mp4", "flv", "avi", "mkv", "mov", "webm",
-            "vod", "cache", "cdn", "video", "stream", "hls",
-            "aliyuncs", "myqcloud", "bcebos", "ksyuncs", "qiniu",
-            "lzcdn", "lziapi", "bfn", "bfncdn", "tiankong", "cdnzz",
-            "m3u8s", "m3u8cache", "vod1", "vod2", "vod3",
-            "play", "play1", "play2", "play3"
-    );
+    private static final Set<String> ALLOWED_KEYWORDS;
+    static {
+        Set<String> s = new HashSet<>(Arrays.asList(
+                "m3u8", "mp4", "flv", "avi", "mkv", "mov", "webm",
+                "vod", "cache", "cdn", "video", "stream", "hls",
+                "aliyuncs", "myqcloud", "bcebos", "ksyuncs", "qiniu",
+                "lzcdn", "lziapi", "bfn", "bfncdn", "tiankong", "cdnzz",
+                "m3u8s", "m3u8cache", "vod1", "vod2", "vod3",
+                "play", "play1", "play2", "play3"
+        ));
+        ALLOWED_KEYWORDS = Collections.unmodifiableSet(s);
+    }
 
     /**
      * 明确禁止的域名（内网/私有地址）
      */
-    private static final Set<String> BLOCKED_KEYWORDS = Set.of(
-            "localhost", "127.", "192.168.", "10.", "172.16.", "169.254.",
-            "0.0.0.0", "::1", "metadata.google", "internal"
-    );
+    private static final Set<String> BLOCKED_KEYWORDS;
+    static {
+        Set<String> s = new HashSet<>(Arrays.asList(
+                "localhost", "127.", "192.168.", "10.", "172.16.", "169.254.",
+                "0.0.0.0", "::1", "metadata.google", "internal"
+        ));
+        BLOCKED_KEYWORDS = Collections.unmodifiableSet(s);
+    }
 
     /**
      * 视频流代理接口
@@ -80,7 +91,7 @@ public class VideoProxyController {
                 return ResponseEntity.badRequest().body(null);
             }
 
-            if (videoUrl.isBlank() || (!videoUrl.startsWith("http://") && !videoUrl.startsWith("https://"))) {
+            if (videoUrl == null || videoUrl.trim().isEmpty() || (!videoUrl.startsWith("http://") && !videoUrl.startsWith("https://"))) {
                 log.warn("视频代理 URL 格式非法");
                 return ResponseEntity.badRequest().body(null);
             }
