@@ -19,6 +19,21 @@
     <div v-else-if="playData" class="play-section">
       <!-- 播放器区域 -->
       <div class="player-section" v-if="currentPlayUrl">
+        <!-- 代理模式开关：直连快但受网络限制；代理走服务器（无视VPN） -->
+        <div class="proxy-toggle-bar">
+          <el-switch
+            v-model="useProxy"
+            active-text="代理加速"
+            inactive-text="直连模式"
+            @change="onProxyToggleChange"
+          />
+          <span v-if="proxyAutoSwitched" class="proxy-auto-hint">
+            ⚡ 检测到网络限制，已自动切换代理
+          </span>
+          <span v-if="useProxy" class="proxy-status-badge">
+            🔒 通过服务器代理播放
+          </span>
+        </div>
         <div class="player-container">
           <!-- DPlayer播放器容器 -->
           <div ref="dplayerContainer" class="dplayer-container"></div>
@@ -116,6 +131,8 @@ const animeTitle = ref(route.query.title || '未知动漫')
 const animeCover = ref('')  // 动漫封面
 const playerStatus = ref(null)
 const watchHistoryId = ref(null)  // 当前观看历史记录 ID
+const useProxy = ref(false) // 是否通过后端代理播放（VPN/网络受限时开启）
+const proxyAutoSwitched = ref(false) // 是否自动切换到了代理模式
 
 // 计算属性 - 固定使用lzm3u8播放源
 const currentEpisodes = computed(() => {
@@ -178,6 +195,34 @@ const fetchPlayData = async () => {
   }
 }
 
+// 代理模式切换：关闭时如果之前是自动切换的，重置标记；切换时重建播放器
+const onProxyToggleChange = (val) => {
+  console.log('代理模式切换为:', val)
+  if (!val) proxyAutoSwitched.value = false
+  // 重建播放器以应用新的 URL
+  nextTick(() => setupVideoPlayer())
+}
+
+/**
+ * 生成代理 URL：后端替前端请求视频 CDN，绕过用户本地 IP（VPN/校园网）限制
+ * 未挂 VPN 的用户走直连（currentPlayUrl 原值），不受影响
+ */
+const getProxyUrl = (directUrl) => {
+  try {
+    const encoded = btoa(unescape(encodeURIComponent(directUrl)))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+    return `/api/video/proxy?url=${encoded}`
+  } catch {
+    return directUrl
+  }
+}
+
+// 当前实际播放的 URL（直连或代理，根据 useProxy 和是否有错误自动选择）
+const actualPlayUrl = computed(() => {
+  if (!currentPlayUrl.value) return ''
+  return useProxy.value ? getProxyUrl(currentPlayUrl.value) : currentPlayUrl.value
+})
+
 // 选择剧集
 const selectEpisode = async (index) => {
   if (index < 0 || index >= currentEpisodes.value.length) return
@@ -186,7 +231,10 @@ const selectEpisode = async (index) => {
   const episode = currentEpisodes.value[index]
   currentPlayUrl.value = episode.url
 
-  console.log('选择剧集:', episode.name, episode.url)
+  // 切换剧集时重置错误触发的自动代理标记（新剧集可以重新尝试直连）
+  proxyAutoSwitched.value = false
+
+  console.log('选择剧集:', episode.name, episode.url, 'proxy:', useProxy.value)
 
   // 记录观看历史（用户已登录时）
   recordWatchHistory(index, episode.name)
@@ -292,7 +340,7 @@ const setupVideoPlayer = () => {
 
     // 检查视频URL格式
     const isHLS = currentPlayUrl.value.includes('.m3u8')
-    console.log('视频格式:', isHLS ? 'HLS' : '普通视频')
+    console.log('视频格式:', isHLS ? 'HLS' : '普通视频', 'via proxy:', useProxy.value)
 
     // 创建DPlayer实例 - 使用自定义控制栏配置
     console.log('开始创建DPlayer实例...')
@@ -302,7 +350,7 @@ const setupVideoPlayer = () => {
       volume: 0.8,
       theme: '#4EABE6',
       video: {
-        url: currentPlayUrl.value
+        url: actualPlayUrl.value
       }
     }
 
@@ -353,55 +401,52 @@ const setupVideoPlayer = () => {
     dplayer.value.on('error', (info) => {
       console.warn('DPlayer播放事件:', info)
 
-      // 只在真正的致命错误时才显示错误提示
-      // 检查错误类型，避免对网络波动等非致命问题显示错误
-      if (info && typeof info === 'object') {
-        // 如果是网络错误但视频仍在播放，不显示错误
-        if (dplayer.value && dplayer.value.video && !dplayer.value.video.error) {
-          console.log('检测到非致命错误，视频仍可正常播放，忽略错误提示')
+      // 检查是否是真正的致命错误
+      const videoEl = dplayer.value?.video
+      const hasFatalError = videoEl && videoEl.error
+
+      // 如果是网络错误但视频仍在播放，不显示错误
+      if (info && typeof info === 'object' && !hasFatalError) {
+        console.log('检测到非致命错误，视频仍可正常播放，忽略错误提示')
+        return
+      }
+
+      // 真正的播放错误
+      if (hasFatalError || info) {
+        // 智能回退：如果当前是直连且未尝试过代理，自动切换到代理重试
+        if (!useProxy.value && currentPlayUrl.value) {
+          console.log('⚠️ 直连失败，自动切换到代理模式重试...')
+          useProxy.value = true
+          proxyAutoSwitched.value = true
+          setPlayerStatus('info', '网络受限', '检测到网络限制，正在通过服务器代理重试...')
+          ElMessage.warning('视频直连失败，已自动切换代理模式')
+
+          // 销毁当前播放器，用代理 URL 重建
+          setTimeout(() => {
+            if (dplayer.value) {
+              try { dplayer.value.destroy() } catch(e) {}
+              dplayer.value = null
+            }
+            if (dplayerContainer.value) dplayerContainer.value.innerHTML = ''
+            setupVideoPlayer()
+          }, 500)
           return
         }
 
-        // 检查是否是真正的播放错误
-        if (dplayer.value && dplayer.value.video && dplayer.value.video.error) {
-          const videoError = dplayer.value.video.error
-          console.error('视频播放致命错误:', videoError)
-
-          // 根据错误代码显示不同的提示
-          let errorMessage = '视频播放出错'
-          switch (videoError.code) {
-            case 1: // MEDIA_ERR_ABORTED
-              errorMessage = '视频播放被中止'
-              break
-            case 2: // MEDIA_ERR_NETWORK
-              errorMessage = '网络错误，请检查网络连接'
-              break
-            case 3: // MEDIA_ERR_DECODE
-              errorMessage = '视频解码错误，请尝试其他播放源'
-              break
-            case 4: // MEDIA_ERR_SRC_NOT_SUPPORTED
-              errorMessage = '视频格式不支持，请尝试其他播放源'
-              break
-            default:
-              errorMessage = '未知播放错误'
+        // 已经在使用代理或无法重试，显示具体错误
+        let errorMessage = '视频播放出错'
+        if (hasFatalError) {
+          switch (videoEl.error.code) {
+            case 1: errorMessage = '视频播放被中止'; break
+            case 2: errorMessage = '网络错误，请检查网络连接'; break
+            case 3: errorMessage = '视频解码错误，请尝试其他播放源'; break
+            case 4: errorMessage = '视频格式不支持，请尝试其他播放源'; break
+            default: errorMessage = '未知播放错误'
           }
-
-          setPlayerStatus('error', '播放错误', errorMessage)
-          ElMessage.error(errorMessage)
-        } else {
-          // 非致命错误，只记录日志
-          console.log('非致命播放事件，继续播放:', info)
         }
-      } else {
-        // 未知错误格式，保守处理
-        console.error('未知格式的播放错误:', info)
-        // 延迟检查，给播放器一些恢复时间
-        setTimeout(() => {
-          if (dplayer.value && dplayer.value.video && dplayer.value.video.error) {
-            setPlayerStatus('error', '播放错误', '视频播放出错，请尝试其他播放源')
-            ElMessage.error('视频播放出错，请尝试其他播放源')
-          }
-        }, 1000)
+        console.error('视频播放致命错误:', errorMessage)
+        setPlayerStatus('error', '播放错误', errorMessage)
+        ElMessage.error(errorMessage)
       }
     })
 
@@ -924,6 +969,31 @@ onUnmounted(() => {
 
 .player-section {
   margin-bottom: 30px;
+}
+
+.proxy-toggle-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  margin-bottom: 10px;
+  background: var(--theme-background);
+  border-radius: 8px;
+  border: 1px solid var(--theme-border);
+  font-size: 13px;
+}
+
+.proxy-auto-hint {
+  color: #e6a23c;
+  font-weight: 500;
+}
+
+.proxy-status-badge {
+  color: #67c23a;
+  font-weight: 500;
+  padding: 2px 8px;
+  background: rgba(103, 194, 58, 0.1);
+  border-radius: 4px;
 }
 
 .player-container {
