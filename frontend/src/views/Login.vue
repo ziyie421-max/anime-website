@@ -72,7 +72,6 @@
 <script setup>
 import { ref, reactive, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
 import { User, Lock } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 import { loginLimiter, sanitizeInput } from '@/utils/security'
@@ -118,10 +117,8 @@ const handleLogin = async () => {
     router.push(redirect)
 
   } catch (error) {
+    // 错误提示已由 authStore.login 统一弹出，这里只记录日志，避免重复提示
     console.error('登录处理失败:', error)
-    if (error.message) {
-      ElMessage.error(error.message)
-    }
   }
 }
 

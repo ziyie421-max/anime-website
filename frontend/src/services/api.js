@@ -22,7 +22,17 @@ async function apiRequest(endpoint, options = {}) {
     const response = await fetch(url, config);
 
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      // 尝试解析后端返回的错误信息并透传，避免只显示 "HTTP error! status: 400"
+      let message = `HTTP error! status: ${response.status}`;
+      try {
+        const errorData = await response.json();
+        if (errorData && (errorData.message || errorData.error)) {
+          message = errorData.message || errorData.error;
+        }
+      } catch (_) {
+        // 响应体不是 JSON，保留默认 status 提示
+      }
+      throw new Error(message);
     }
 
     return await response.json();

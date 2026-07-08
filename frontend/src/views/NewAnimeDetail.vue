@@ -12,8 +12,6 @@
       <div class="breadcrumb">
         <span @click="$router.push('/')" class="breadcrumb-item">首页</span>
         <span class="separator">></span>
-        <span @click="$router.push('/external')" class="breadcrumb-item">动漫列表</span>
-        <span class="separator">></span>
         <span class="current">{{ animeData.title }}</span>
       </div>
     </div>

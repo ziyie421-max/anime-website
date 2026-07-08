@@ -4,7 +4,7 @@
     <!-- 返回按钮和动漫标题 -->
     <div class="header-section">
       <el-button @click="goBack" :icon="ArrowLeft" class="back-button">
-        返回列表
+        返回详情
       </el-button>
       <h2 class="anime-title" v-if="animeTitle">{{ animeTitle }}</h2>
     </div>
@@ -80,7 +80,7 @@
             重新加载
           </el-button>
           <el-button @click="goBack">
-            返回列表
+            返回详情
           </el-button>
         </template>
       </el-result>
@@ -702,9 +702,13 @@ const setPlayerStatus = (type, title, message) => {
 
 
 
-// 返回列表
+// 返回详情页（回到对应动漫的详情页面）
 const goBack = () => {
-  router.push('/external')
+  if (vodId.value) {
+    router.push(`/anime/${vodId.value}`)
+  } else {
+    router.back()
+  }
 }
 
 // 重新加载
@@ -1149,6 +1153,17 @@ onUnmounted(() => {
 
   :deep(.dplayer-episode-panel-content) {
     max-height: 240px;
+  }
+
+  /* 移动端非全屏隐藏播放器内置"剧集列表"按钮（播放器下方已有完整剧集选择列表，避免控制栏拥挤） */
+  :deep(.dplayer-episode-list) {
+    display: none !important;
+  }
+
+  /* 进入全屏后再恢复显示该按钮 */
+  :deep(.dplayer:fullscreen .dplayer-episode-list),
+  :deep(.dplayer-webkit-full-screen .dplayer-episode-list) {
+    display: flex !important;
   }
 }
 

@@ -507,15 +507,28 @@ onMounted(() => {
     font-size: 0.68rem;
   }
 
-  /* 移动端动漫列表：固定 2 列卡片 */
+  /* 移动端动漫列表：横向滑动，不再使用 2 列网格 */
   .anime-list {
-    grid-template-columns: repeat(2, 1fr);
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
     gap: 12px;
     padding: 12px;
+    scrollbar-width: none; /* 隐藏滚动条 */
+  }
+
+  .anime-list::-webkit-scrollbar {
+    display: none; /* 隐藏滚动条 */
+  }
+
+  .anime-item {
+    flex: 0 0 132px; /* 固定卡片宽度，确保可横向滑动 */
+    scroll-snap-align: start;
   }
 
   .anime-cover {
-    height: 150px;
+    height: 178px;
   }
 
   .anime-info {

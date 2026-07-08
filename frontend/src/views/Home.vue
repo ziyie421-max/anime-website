@@ -2,7 +2,7 @@
 <template>
   <div class="home">
     <!-- 轮播图区域 - 海报在左侧，文字在右侧 -->
-    <el-carousel height="500px" class="banner-carousel" indicator-position="outside" arrow="hover">
+    <el-carousel ref="bannerCarouselRef" height="500px" class="banner-carousel" indicator-position="outside" arrow="hover">
       <el-carousel-item v-for="item in bannerList" :key="item.id">
         <div class="banner-item">
           <!-- 整个轮播区域的遮罩 -->
@@ -20,7 +20,7 @@
               <p class="banner-description">{{ item.description }}</p>
               <div class="banner-actions">
                 <el-button type="primary" size="large" @click="goToAnime(item)" class="info-btn">
-                  <el-icon><InfoFilled /></el-icon>
+                  <!-- <el-icon><InfoFilled /></el-icon> -->
                   详细信息
                 </el-button>
               </div>
@@ -43,9 +43,9 @@
             <el-icon class="section-icon"><Star /></el-icon>
             <h3>热门推荐</h3>
           </div>
-          <el-button text type="primary" @click="$router.push('/anime?sort=popular')" class="more-btn">
+          <!-- <el-button text type="primary" @click="$router.push('/anime?sort=popular')" class="more-btn">
             查看更多 <el-icon><ArrowRight /></el-icon>
-          </el-button>
+          </el-button> -->
         </div>
         <div class="anime-grid">
           <div v-for="anime in popularAnime" :key="anime.id" class="anime-card" @click="goToAnime(anime)">
@@ -78,9 +78,9 @@
             <el-icon class="section-icon"><Refresh /></el-icon>
             <h3>最新更新</h3>
           </div>
-          <el-button text type="primary" @click="$router.push('/anime?sort=latest')" class="more-btn">
+          <!-- <el-button text type="primary" @click="$router.push('/anime?sort=latest')" class="more-btn">
             查看更多 <el-icon><ArrowRight /></el-icon>
-          </el-button>
+          </el-button> -->
         </div>
         <div class="anime-grid">
           <div v-for="anime in latestAnime" :key="anime.id" class="anime-card" @click="goToAnime(anime)">
@@ -110,7 +110,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { animeAPI, externalAPI, handleApiError } from '@/services/api'
@@ -299,9 +299,48 @@ const setFallbackData = () => {
 
 }
 
+// 轮播图触摸滑动支持（移动端）：记录起手坐标，松手时按水平位移方向切换
+const bannerCarouselRef = ref(null)
+let carouselTouchStartX = 0
+let carouselTouchStartY = 0
+
+const onCarouselTouchStart = (e) => {
+  carouselTouchStartX = e.touches[0].clientX
+  carouselTouchStartY = e.touches[0].clientY
+}
+
+const onCarouselTouchEnd = (e) => {
+  const dx = e.changedTouches[0].clientX - carouselTouchStartX
+  const dy = e.changedTouches[0].clientY - carouselTouchStartY
+  // 仅在明显的水平滑动时切换，避免与页面纵向滚动冲突
+  if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+    if (dx < 0) {
+      bannerCarouselRef.value?.next() // 向左滑 → 下一张
+    } else {
+      bannerCarouselRef.value?.prev() // 向右滑 → 上一张
+    }
+  }
+}
+
 // 组件挂载时获取数据
 onMounted(() => {
   fetchHomeData()
+  // 绑定轮播图触摸事件（用于移动端左右滑动切换）
+  nextTick(() => {
+    const el = bannerCarouselRef.value?.$el
+    if (el) {
+      el.addEventListener('touchstart', onCarouselTouchStart, { passive: true })
+      el.addEventListener('touchend', onCarouselTouchEnd, { passive: true })
+    }
+  })
+})
+
+onUnmounted(() => {
+  const el = bannerCarouselRef.value?.$el
+  if (el) {
+    el.removeEventListener('touchstart', onCarouselTouchStart)
+    el.removeEventListener('touchend', onCarouselTouchEnd)
+  }
 })
 </script>
 
@@ -817,13 +856,26 @@ onMounted(() => {
   }
 
   .anime-grid {
-    grid-template-columns: repeat(2, 1fr);
+    display: flex; /* 移动端改为横向滑动，不再使用网格 */
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
     gap: 12px;
-    padding: 8px 0;
+    padding: 8px 4px 16px;
+    scrollbar-width: none; /* Firefox 隐藏滚动条 */
+  }
+
+  .anime-grid::-webkit-scrollbar {
+    display: none; /* Chrome/Safari 隐藏滚动条 */
+  }
+
+  .anime-card {
+    flex: 0 0 142px; /* 固定卡片宽度，确保可横向滑动 */
+    scroll-snap-align: start;
   }
 
   .anime-poster {
-    height: 210px;
+    height: 196px;
   }
 
   .anime-info {
