@@ -496,12 +496,12 @@ onMounted(async () => {
 }
 
 .header-container {
-  max-width: 1400px;
-  margin: 0 auto;
+  width: 100%;
   padding: 0 40px;
   display: flex;
   align-items: center;
   height: 70px;
+  box-sizing: border-box;
 }
 
 .logo {
@@ -785,6 +785,9 @@ onMounted(async () => {
   border: 1px solid rgba(255, 255, 255, 0.3) !important;
   color: var(--theme-nav-text) !important; /* 使用导航栏专用颜色 */
   border-radius: 50% !important; /* 主题/登录按钮统一纯圆形 */
+  padding: 0 !important; /* 覆盖 user-area 的横向 padding，防止圆形被撑成椭圆 */
+  width: 38px;
+  height: 38px;
   transition: all 0.3s ease;
 }
 
@@ -822,7 +825,7 @@ onMounted(async () => {
   gap: 15px;
 }
 
-.user-area :deep(.el-button) {
+.user-area :deep(.el-button:not(.is-circle)) {
   border-radius: 20px;
   font-weight: 600;
   padding: 10px 20px;
@@ -894,7 +897,6 @@ onMounted(async () => {
 /* 响应式设计 */
 @media (max-width: 1200px) {
   .header-container {
-    max-width: 1000px;
     padding: 0 30px;
   }
 
