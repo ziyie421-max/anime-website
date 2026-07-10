@@ -355,18 +355,7 @@ onMounted(async () => {
               @keyup.enter="handleSearch"
               class="search-input"
               clearable
-            >
-              <template #suffix>
-                <!-- 关闭按钮在搜索框右侧 -->
-                <el-icon
-                  @click="toggleSearch"
-                  class="search-close-icon"
-                  title="收起搜索"
-                >
-                  <Close />
-                </el-icon>
-              </template>
-            </el-input>
+            />
           </div>
           <!-- 搜索触发按钮：位于最右侧，和主题/登录按钮挨在一起；展开后图标变 ✕ -->
           <el-button
