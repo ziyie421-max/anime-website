@@ -327,7 +327,7 @@ onMounted(async () => {
   <div id="app">
     <!-- 顶部导航栏 -->
     <header class="header">
-      <div class="header-container">
+      <div class="header-container" :class="{ 'search-expanded': isSearchExpanded }">
         <!-- Logo -->
         <div class="logo" @click="$router.push('/')">
           <h1>AnimeS~</h1>
@@ -368,14 +368,14 @@ onMounted(async () => {
               </template>
             </el-input>
           </div>
-          <!-- 搜索触发按钮：位于最右侧，和主题/登录按钮挨在一起 -->
+          <!-- 搜索触发按钮：位于最右侧，和主题/登录按钮挨在一起；展开后图标变 ✕ -->
           <el-button
             @click="toggleSearch"
             circle
             size="default"
-            :icon="Search"
+            :icon="isSearchExpanded ? Close : Search"
             class="search-toggle-btn"
-            title="搜索"
+            :title="isSearchExpanded ? '收起' : '搜索'"
           />
 
           <!-- 搜索结果下拉框（PC/移动端统一：展开后才显示） -->
@@ -1002,14 +1002,15 @@ onMounted(async () => {
     display: none;
   }
 
-  /* 搜索框占满中间剩余空间；完整清掉 PC 端的 margin:auto，
-     避免残留在 flex:1 上把布局撑乱；justify-content 让折叠按钮靠右 */
+  /* 搜索框占满中间剩余空间；justify-content 让折叠按钮靠右 */
   .search-box {
     flex: 1;
     margin: 0;
     min-width: 0;
+    display: flex;
+    align-items: center;
     justify-content: flex-end;
-    position: relative; /* 作为移动端输入框绝对定位的参考 */
+    gap: 8px;
   }
 
   /* 移动端 logo 左距改小，避免偏左 */
@@ -1017,27 +1018,40 @@ onMounted(async () => {
     margin-left: 12px;
   }
 
-  /* 移动端搜索框展开时：绝对定位脱离 flex 流悬浮在按钮左侧，
-     往左展开，不挤压 logo；未折叠时隐藏 */
+  /* 移动端折叠态：只显示搜索按钮，输入框隐藏 */
   .search-input-wrapper {
-    position: absolute;
-    right: 46px; /* 贴近搜索按钮(38px)左侧，留 8px gap */
-    top: 50%;
-    transform: translateY(-50%);
-    max-width: 0;
-    opacity: 0;
-    overflow: hidden;
-    transition: max-width 0.3s ease, opacity 0.2s ease;
-    z-index: 10;
+    display: none;
   }
 
-  .search-box.search-expanded .search-input-wrapper {
-    max-width: 200px;
+  /* 移动端：搜索展开时整行变成搜索栏
+     - 隐藏 logo、主题、登录按钮
+     - 输入框占满整行宽度，关闭按钮(✕)在最右侧 */
+  .header-container.search-expanded .logo {
+    display: none;
+  }
+
+  .header-container.search-expanded .theme-toggle {
+    display: none;
+  }
+
+  .header-container.search-expanded .user-area {
+    display: none;
+  }
+
+  .header-container.search-expanded .search-box {
+    justify-content: flex-start;
+  }
+
+  .header-container.search-expanded .search-input-wrapper {
+    display: flex;
+    flex: 1;
+    max-width: none;
     opacity: 1;
+    overflow: visible;
   }
 
-  .search-input {
-    width: 200px;
+  .header-container.search-expanded .search-input {
+    width: 100%;
   }
 
   /* 搜索结果下拉框在窄屏下保证最小可读宽度 */
