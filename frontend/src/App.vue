@@ -22,7 +22,6 @@ const searchResults = ref([])
 const isSearching = ref(false)
 const showSearchResults = ref(false)
 const isSearchExpanded = ref(false) // 搜索框是否展开（默认隐藏，点击搜索按钮后展开）
-const isMobile = ref(window.innerWidth <= 768) // 是否移动端（移动端始终显示搜索框，无需折叠）
 
 // 主题切换
 const isDarkTheme = ref(false)
@@ -182,13 +181,7 @@ const handleClickOutside = (event) => {
 // 组件挂载时添加全局点击事件监听
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
-  window.addEventListener('resize', updateIsMobile)
 })
-
-// 更新移动端状态
-const updateIsMobile = () => {
-  isMobile.value = window.innerWidth <= 768
-}
 
 // 监听搜索关键词变化，实现实时搜索
 watch(searchKeyword, (newKeyword) => {
@@ -199,7 +192,6 @@ watch(searchKeyword, (newKeyword) => {
 // 组件卸载时移除事件监听和清理定时器
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
-  window.removeEventListener('resize', updateIsMobile)
   if (searchTimeout) {
     clearTimeout(searchTimeout)
   }
@@ -386,8 +378,8 @@ onMounted(async () => {
             title="搜索"
           />
 
-          <!-- 搜索结果下拉框：PC端需展开后才显示，移动端始终显示 -->
-          <div v-if="showSearchResults && searchKeyword.trim() && (isSearchExpanded || isMobile)" class="search-results-dropdown">
+          <!-- 搜索结果下拉框（PC/移动端统一：展开后才显示） -->
+          <div v-if="showSearchResults && searchKeyword.trim() && isSearchExpanded" class="search-results-dropdown">
             <div class="search-results-header">
               <span v-if="isSearching">正在搜索...</span>
               <span v-else>搜索结果 ({{ searchResults.length }})</span>
@@ -586,6 +578,7 @@ onMounted(async () => {
 
 .search-box {
   margin-left: auto; /* 靠右，和主题/登录按钮挨在一起 */
+  margin-right: 16px; /* 和主题按钮之间留出间距，避免贴太紧 */
   position: relative;
   display: flex;
   align-items: center;
@@ -641,25 +634,26 @@ onMounted(async () => {
   color: var(--theme-nav-text); /* 使用导航栏专用颜色 */
 }
 
+/* 去掉输入框选中/聚焦时的彩色边框（图2问题） */
+.search-input :deep(.el-input__inner:focus) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 .search-input :deep(.el-input__inner::placeholder) {
   color: var(--theme-nav-text-secondary); /* 使用导航栏专用次要颜色 */
 }
 
-/* 搜索框悬停时的样式 */
+/* 搜索框悬停时的样式：只变背景，不加阴影 */
 .search-input :deep(.el-input__wrapper:hover) {
   background: rgba(255, 255, 255, 0.25) !important; /* 悬停时背景稍微变亮 */
-  transform: translateY(-1px) !important; /* 轻微上浮效果 */
-  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12), 0 3px 10px rgba(0, 0, 0, 0.08) !important; /* 增强阴影 */
 }
 
-/* 搜索框聚焦时的样式 */
+/* 搜索框聚焦时的样式：去掉彩色方框/光晕，只保留背景变化 */
 .search-input :deep(.el-input__wrapper:focus-within) {
   background: rgba(255, 255, 255, 0.3) !important; /* 聚焦时背景更亮 */
-  transform: translateY(-2px) !important; /* 轻微上浮效果 */
-  box-shadow:
-    0 8px 30px rgba(0, 0, 0, 0.15),
-    0 4px 15px rgba(0, 0, 0, 0.1),
-    0 0 0 3px rgba(var(--theme-primary-rgb), 0.4) !important; /* 组合阴影：深度阴影 + 主题色光晕 */
+  box-shadow: none !important; /* 去掉聚焦时的彩色方框 */
+  outline: none !important;
 }
 
 .search-icon {
@@ -1009,27 +1003,18 @@ onMounted(async () => {
   }
 
   /* 搜索框占满中间剩余空间；完整清掉 PC 端的 margin:auto，
-     避免残留在 flex:1 上把布局撑乱 */
+     避免残留在 flex:1 上把布局撑乱；justify-content 让折叠按钮靠右 */
   .search-box {
     flex: 1;
     margin: 0;
     min-width: 0;
+    justify-content: flex-end;
   }
 
-  /* 移动端：不折叠，始终显示输入框（!important 压过 ElPlus 的 inline-flex） */
-  .search-toggle-btn {
-    display: none !important;
-  }
-
-  .search-input-wrapper {
-    max-width: none !important;
-    opacity: 1 !important;
-    flex: 1;
-    overflow: visible;
-  }
-
+  /* 移动端搜索框也保持折叠按钮样式（与 PC 一致），
+     搜索按钮始终显示，点击后才展开输入框 */
   .search-input {
-    width: 100%;
+    width: 220px; /* 移动端输入框稍窄 */
   }
 
   /* 搜索结果下拉框在窄屏下保证最小可读宽度 */
