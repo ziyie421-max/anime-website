@@ -22,6 +22,7 @@ const searchResults = ref([])
 const isSearching = ref(false)
 const showSearchResults = ref(false)
 const isSearchExpanded = ref(false) // 搜索框是否展开（默认隐藏，点击搜索按钮后展开）
+const isMobile = ref(window.innerWidth <= 768) // 是否移动端（移动端始终显示搜索框，无需折叠）
 
 // 主题切换
 const isDarkTheme = ref(false)
@@ -181,7 +182,13 @@ const handleClickOutside = (event) => {
 // 组件挂载时添加全局点击事件监听
 onMounted(() => {
   document.addEventListener('click', handleClickOutside)
+  window.addEventListener('resize', updateIsMobile)
 })
+
+// 更新移动端状态
+const updateIsMobile = () => {
+  isMobile.value = window.innerWidth <= 768
+}
 
 // 监听搜索关键词变化，实现实时搜索
 watch(searchKeyword, (newKeyword) => {
@@ -192,6 +199,7 @@ watch(searchKeyword, (newKeyword) => {
 // 组件卸载时移除事件监听和清理定时器
 onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
+  window.removeEventListener('resize', updateIsMobile)
   if (searchTimeout) {
     clearTimeout(searchTimeout)
   }
@@ -346,16 +354,8 @@ onMounted(async () => {
           </router-link>
         </nav>
 
-        <!-- 搜索框：默认只显示搜索按钮，点击后输入框原地展开 -->
+        <!-- 搜索框：默认只显示搜索按钮(和主题/登录挨在一起)，点击后输入框原地展开 -->
         <div class="search-box" :class="{ 'search-expanded': isSearchExpanded }">
-          <el-button
-            @click="toggleSearch"
-            circle
-            size="default"
-            :icon="isSearchExpanded ? Close : Search"
-            class="search-toggle-btn"
-            :title="isSearchExpanded ? '收起搜索' : '搜索'"
-          />
           <div class="search-input-wrapper">
             <el-input
               v-model="searchKeyword"
@@ -365,20 +365,29 @@ onMounted(async () => {
               clearable
             >
               <template #suffix>
+                <!-- 关闭按钮在搜索框右侧 -->
                 <el-icon
-                  @click="handleSearch"
-                  class="search-icon"
-                  :class="{ 'searching': isSearching }"
-                  :title="searchKeyword.trim() ? '查看完整搜索结果' : '搜索'"
+                  @click="toggleSearch"
+                  class="search-close-icon"
+                  title="收起搜索"
                 >
-                  <Search />
+                  <Close />
                 </el-icon>
               </template>
             </el-input>
           </div>
+          <!-- 搜索触发按钮：位于最右侧，和主题/登录按钮挨在一起 -->
+          <el-button
+            @click="toggleSearch"
+            circle
+            size="default"
+            :icon="Search"
+            class="search-toggle-btn"
+            title="搜索"
+          />
 
-          <!-- 搜索结果下拉框 -->
-          <div v-if="showSearchResults && searchKeyword.trim() && isSearchExpanded" class="search-results-dropdown">
+          <!-- 搜索结果下拉框：PC端需展开后才显示，移动端始终显示 -->
+          <div v-if="showSearchResults && searchKeyword.trim() && (isSearchExpanded || isMobile)" class="search-results-dropdown">
             <div class="search-results-header">
               <span v-if="isSearching">正在搜索...</span>
               <span v-else>搜索结果 ({{ searchResults.length }})</span>
@@ -576,7 +585,7 @@ onMounted(async () => {
 }
 
 .search-box {
-  margin: 0 auto;
+  margin-left: auto; /* 靠右，和主题/登录按钮挨在一起 */
   position: relative;
   display: flex;
   align-items: center;
@@ -624,7 +633,7 @@ onMounted(async () => {
   border: none !important; /* 完全去掉边框 */
   backdrop-filter: blur(15px); /* 增强毛玻璃效果 */
   border-radius: 25px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.05) !important; /* 添加柔和的阴影 */
+  box-shadow: none !important; /* 去掉突兀阴影 */
   transition: all 0.3s ease; /* 添加过渡动画 */
 }
 
@@ -661,6 +670,17 @@ onMounted(async () => {
 
 .search-icon:hover {
   color: var(--theme-nav-text); /* 使用导航栏专用颜色 */
+}
+
+/* 搜索框内关闭按钮（右侧 ✕） */
+.search-close-icon {
+  cursor: pointer;
+  color: var(--theme-nav-text-secondary);
+  transition: color 0.3s ease;
+}
+
+.search-close-icon:hover {
+  color: var(--theme-nav-text);
 }
 
 .search-icon.searching {
@@ -996,15 +1016,16 @@ onMounted(async () => {
     min-width: 0;
   }
 
-  /* 移动端：不折叠，始终显示输入框 */
+  /* 移动端：不折叠，始终显示输入框（!important 压过 ElPlus 的 inline-flex） */
   .search-toggle-btn {
-    display: none;
+    display: none !important;
   }
 
   .search-input-wrapper {
-    max-width: none;
-    opacity: 1;
+    max-width: none !important;
+    opacity: 1 !important;
     flex: 1;
+    overflow: visible;
   }
 
   .search-input {
