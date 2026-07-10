@@ -21,6 +21,7 @@ const searchKeyword = ref('')
 const searchResults = ref([])
 const isSearching = ref(false)
 const showSearchResults = ref(false)
+const isSearchExpanded = ref(false) // 搜索框是否展开（默认隐藏，点击搜索按钮后展开）
 
 // 主题切换
 const isDarkTheme = ref(false)
@@ -143,6 +144,18 @@ const closeSearchResults = () => {
   showSearchResults.value = false
   searchKeyword.value = ''
   searchResults.value = []
+}
+
+// 切换搜索框展开/收起
+const toggleSearch = () => {
+  isSearchExpanded.value = !isSearchExpanded.value
+  if (isSearchExpanded.value) {
+    // 展开后自动聚焦输入框
+    setTimeout(() => {
+      const input = document.querySelector('.search-box .search-input .el-input__inner')
+      input && input.focus()
+    }, 100)
+  }
 }
 
 // 查看动漫详情
@@ -333,29 +346,39 @@ onMounted(async () => {
           </router-link>
         </nav>
 
-        <!-- 搜索框 -->
-        <div class="search-box">
-          <el-input
-            v-model="searchKeyword"
-            placeholder="输入动漫名称..."
-            @keyup.enter="handleSearch"
-            class="search-input"
-            clearable
-          >
-            <template #suffix>
-              <el-icon
-                @click="handleSearch"
-                class="search-icon"
-                :class="{ 'searching': isSearching }"
-                :title="searchKeyword.trim() ? '查看完整搜索结果' : '搜索'"
-              >
-                <Search />
-              </el-icon>
-            </template>
-          </el-input>
+        <!-- 搜索框：默认只显示搜索按钮，点击后输入框原地展开 -->
+        <div class="search-box" :class="{ 'search-expanded': isSearchExpanded }">
+          <el-button
+            @click="toggleSearch"
+            circle
+            size="default"
+            :icon="isSearchExpanded ? Close : Search"
+            class="search-toggle-btn"
+            :title="isSearchExpanded ? '收起搜索' : '搜索'"
+          />
+          <div class="search-input-wrapper">
+            <el-input
+              v-model="searchKeyword"
+              placeholder="输入动漫名称..."
+              @keyup.enter="handleSearch"
+              class="search-input"
+              clearable
+            >
+              <template #suffix>
+                <el-icon
+                  @click="handleSearch"
+                  class="search-icon"
+                  :class="{ 'searching': isSearching }"
+                  :title="searchKeyword.trim() ? '查看完整搜索结果' : '搜索'"
+                >
+                  <Search />
+                </el-icon>
+              </template>
+            </el-input>
+          </div>
 
           <!-- 搜索结果下拉框 -->
-          <div v-if="showSearchResults && searchKeyword.trim()" class="search-results-dropdown">
+          <div v-if="showSearchResults && searchKeyword.trim() && isSearchExpanded" class="search-results-dropdown">
             <div class="search-results-header">
               <span v-if="isSearching">正在搜索...</span>
               <span v-else>搜索结果 ({{ searchResults.length }})</span>
@@ -506,6 +529,7 @@ onMounted(async () => {
 
 .logo {
   cursor: pointer;
+  margin-left: 48px; /* 往右挪一点，不再紧贴屏幕左边缘 */
   margin-right: 24px;
   flex-shrink: 0;
 }
@@ -554,6 +578,41 @@ onMounted(async () => {
 .search-box {
   margin: 0 auto;
   position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 搜索展开/收起按钮：和主题/登录按钮同风格正圆 */
+.search-toggle-btn {
+  background: rgba(255, 255, 255, 0.2) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  color: var(--theme-nav-text) !important;
+  border-radius: 50% !important;
+  padding: 0 !important;
+  width: 38px !important;
+  height: 38px !important;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.search-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+  transform: scale(1.1);
+}
+
+/* 输入框容器：默认折叠，展开时滑出 */
+.search-input-wrapper {
+  overflow: hidden;
+  max-width: 0;
+  opacity: 0;
+  transition: max-width 0.3s ease, opacity 0.2s ease;
+  flex-shrink: 0;
+}
+
+.search-box.search-expanded .search-input-wrapper {
+  max-width: 350px;
+  opacity: 1;
 }
 
 .search-input {
@@ -935,6 +994,17 @@ onMounted(async () => {
     flex: 1;
     margin: 0;
     min-width: 0;
+  }
+
+  /* 移动端：不折叠，始终显示输入框 */
+  .search-toggle-btn {
+    display: none;
+  }
+
+  .search-input-wrapper {
+    max-width: none;
+    opacity: 1;
+    flex: 1;
   }
 
   .search-input {
