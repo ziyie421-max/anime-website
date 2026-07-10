@@ -578,7 +578,7 @@ onMounted(async () => {
 
 .search-box {
   margin-left: auto; /* 靠右，和主题/登录按钮挨在一起 */
-  margin-right: 16px; /* 和主题按钮之间留出间距，避免贴太紧 */
+  margin-right: 20px; /* 和主题按钮之间留出间距，与主题-登录按钮间距一致 */
   position: relative;
   display: flex;
   align-items: center;
