@@ -1009,12 +1009,35 @@ onMounted(async () => {
     margin: 0;
     min-width: 0;
     justify-content: flex-end;
+    position: relative; /* 作为移动端输入框绝对定位的参考 */
   }
 
-  /* 移动端搜索框也保持折叠按钮样式（与 PC 一致），
-     搜索按钮始终显示，点击后才展开输入框 */
+  /* 移动端 logo 左距改小，避免偏左 */
+  .logo {
+    margin-left: 12px;
+  }
+
+  /* 移动端搜索框展开时：绝对定位脱离 flex 流悬浮在按钮左侧，
+     往左展开，不挤压 logo；未折叠时隐藏 */
+  .search-input-wrapper {
+    position: absolute;
+    right: 46px; /* 贴近搜索按钮(38px)左侧，留 8px gap */
+    top: 50%;
+    transform: translateY(-50%);
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    transition: max-width 0.3s ease, opacity 0.2s ease;
+    z-index: 10;
+  }
+
+  .search-box.search-expanded .search-input-wrapper {
+    max-width: 200px;
+    opacity: 1;
+  }
+
   .search-input {
-    width: 220px; /* 移动端输入框稍窄 */
+    width: 200px;
   }
 
   /* 搜索结果下拉框在窄屏下保证最小可读宽度 */
