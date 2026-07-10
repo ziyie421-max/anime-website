@@ -506,7 +506,8 @@ onMounted(async () => {
 
 .logo {
   cursor: pointer;
-  margin-right: 50px;
+  margin-right: 24px;
+  flex-shrink: 0;
 }
 
 .logo h1 {
@@ -520,7 +521,7 @@ onMounted(async () => {
 .nav-menu {
   display: flex;
   gap: 40px;
-  margin-right: auto;
+  margin-right: 0;
 }
 
 .nav-item {
@@ -551,7 +552,7 @@ onMounted(async () => {
 }
 
 .search-box {
-  margin-right: 30px;
+  margin: 0 auto;
   position: relative;
 }
 
@@ -786,8 +787,10 @@ onMounted(async () => {
   color: var(--theme-nav-text) !important; /* 使用导航栏专用颜色 */
   border-radius: 50% !important; /* 主题/登录按钮统一纯圆形 */
   padding: 0 !important; /* 覆盖 user-area 的横向 padding，防止圆形被撑成椭圆 */
-  width: 38px;
-  height: 38px;
+  /* ElPlus 自带 .el-button.is-circle{width:32px}，特异性相同但源顺序靠后会覆盖我的 width，
+     导致按钮渲染成 32×38 椭圆。用 !important 锁死宽高相等，保证正圆 */
+  width: 38px !important;
+  height: 38px !important;
   transition: all 0.3s ease;
 }
 
@@ -926,10 +929,11 @@ onMounted(async () => {
     display: none;
   }
 
-  /* 搜索框占满中间剩余空间 */
+  /* 搜索框占满中间剩余空间；完整清掉 PC 端的 margin:auto，
+     避免残留在 flex:1 上把布局撑乱 */
   .search-box {
     flex: 1;
-    margin-right: 0;
+    margin: 0;
     min-width: 0;
   }
 
