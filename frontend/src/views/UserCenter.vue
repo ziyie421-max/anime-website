@@ -337,15 +337,26 @@ onMounted(() => {
 }
 
 .stat-value {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
   font-size: 24px;
+  line-height: 1;
   font-weight: bold;
   color: var(--theme-primary); /* 使用主题主色 */
 }
 
 /* 修改密码按钮的图标样式 */
 .stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
   font-size: 24px;
+  line-height: 1;
   color: var(--theme-primary); /* 使用主题主色 */
 }
 
@@ -489,7 +500,10 @@ onMounted(() => {
     padding: 10px 8px;
   }
 
-  .stat-value {
+  .stat-value,
+  .stat-icon {
+    width: 24px;
+    height: 24px;
     font-size: 20px;
   }
 
