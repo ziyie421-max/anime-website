@@ -127,12 +127,15 @@ public class ExternalSourceController {
      * 解析播放链接
      */
     @GetMapping("/anime/play/{vodId}")
-    public ResponseEntity<?> getPlayUrls(@PathVariable String vodId) {
-        log.info("获取播放链接 - ID: {}", vodId);
+    public ResponseEntity<?> getPlayUrls(
+            @PathVariable String vodId,
+            @RequestParam(defaultValue = "lzzy") String source
+    ) {
+        log.info("获取播放链接 - ID: {}, 源: {}", vodId, source);
         
         try {
             // 先获取动漫详情
-            ExternalAnimeResponse response = externalSourceService.getAnimeDetail(vodId);
+            ExternalAnimeResponse response = externalSourceService.getAnimeForPlayback(vodId, source);
             
             if (response != null && response.getCode() == 1 && 
                 response.getList() != null && !response.getList().isEmpty()) {
@@ -149,6 +152,9 @@ public class ExternalSourceController {
                 result.put("cover", anime.getVodPic());  // 添加封面图片字段
                 result.put("playUrls", playUrls);
                 result.put("totalEpisodes", anime.getVodTotal());
+                result.put("sourceKey", anime.getSourceKey());
+                result.put("sourceName", anime.getSourceName());
+                result.put("playbackSources", externalSourceService.getSupportedSources());
 
                 return ResponseEntity.ok(result);
             } else {

@@ -381,8 +381,8 @@ export const externalAPI = {
   },
 
   // 获取播放链接
-  getPlayUrls: (vodId) => {
-    return apiRequest(`/external/anime/play/${vodId}`);
+  getPlayUrls: (vodId, source = 'lzzy') => {
+    return apiRequest(`/external/anime/play/${vodId}?source=${encodeURIComponent(source)}`);
   },
 
   // 获取热门动漫（优先展示量子资源）

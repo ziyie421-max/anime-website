@@ -31,6 +31,23 @@
 
 
 
+      <div class="source-selector" v-if="Object.keys(playbackSources).length > 1">
+        <span class="source-label">播放源</span>
+        <div class="source-list">
+          <el-button
+            v-for="(sourceName, sourceKey) in playbackSources"
+            :key="sourceKey"
+            :type="activeSource === sourceKey ? 'primary' : 'default'"
+            size="small"
+            :loading="isSwitchingSource && activeSource === sourceKey"
+            @click="selectPlaybackSource(sourceKey)"
+            class="source-btn"
+          >
+            {{ sourceName }}
+          </el-button>
+        </div>
+      </div>
+
       <!-- 剧集选择 - 移到播放器下方 -->
       <div class="episode-selector" v-if="currentEpisodes.length > 0">
         <h3>选择剧集</h3>
@@ -116,15 +133,25 @@ const animeTitle = ref(route.query.title || '未知动漫')
 const animeCover = ref('')  // 动漫封面
 const playerStatus = ref(null)
 const watchHistoryId = ref(null)  // 当前观看历史记录 ID
+const activeSource = ref('lzzy')
+const isSwitchingSource = ref(false)
 
-// 计算属性 - 固定使用lzm3u8播放源
+const playbackSources = computed(() => playData.value?.playbackSources || {})
+
+// 备用源的线路名并不固定，优先选择包含 m3u8 地址的线路。
 const currentEpisodes = computed(() => {
-  if (!playData.value) return []
-  return playData.value.playUrls['lzm3u8'] || []
+  const playUrls = playData.value?.playUrls
+  if (!playUrls) return []
+
+  const sources = Object.values(playUrls).filter(episodes => Array.isArray(episodes) && episodes.length > 0)
+  const hlsEpisodes = sources.find(episodes =>
+    episodes.some(episode => /\.m3u8(?:$|\?)/i.test(episode.url || ''))
+  )
+  return hlsEpisodes || sources[0] || []
 })
 
 // 获取播放数据
-const fetchPlayData = async () => {
+const fetchPlayData = async (source = activeSource.value) => {
   const id = route.query.id
   if (!id) {
     ElMessage.error('缺少动漫 ID 参数')
@@ -139,33 +166,28 @@ const fetchPlayData = async () => {
     isLoading.value = true
     console.log('获取播放数据:', id)
 
-    const response = await externalAPI.getPlayUrls(id)
+    const response = await externalAPI.getPlayUrls(id, source)
 
     if (response && response.playUrls) {
       playData.value = response
+      activeSource.value = response.sourceKey || source
       animeTitle.value = response.title || animeTitle.value
       animeCover.value = response.cover || ''  // 保存封面
 
-      // 检查是否有lzm3u8播放源
-      if (response.playUrls['lzm3u8']) {
-        console.log('找到lzm3u8播放源')
-
-        // 等待下一个tick确保计算属性更新，然后选择第一集
-        await nextTick()
-        const episodes = response.playUrls['lzm3u8']
-        if (episodes && episodes.length > 0) {
-          // 检查URL参数中是否有指定的剧集
-          const queryEpisode = parseInt(route.query.episode) || 0
-          const startIndex = queryEpisode > 0 ? Math.min(queryEpisode - 1, episodes.length - 1) : 0
-          console.log('选择剧集:', episodes[startIndex].name)
-          selectEpisode(startIndex)
-        }
+      await nextTick()
+      const episodes = currentEpisodes.value
+      if (episodes.length > 0) {
+        const queryEpisode = parseInt(route.query.episode) || 0
+        const startIndex = queryEpisode > 0 ? Math.min(queryEpisode - 1, episodes.length - 1) : 0
+        console.log('选择剧集:', episodes[startIndex].name)
+        selectEpisode(startIndex)
       } else {
-        console.warn('未找到lzm3u8播放源')
+        console.warn('未找到支持的播放源')
         ElMessage.warning('未找到支持的播放源')
       }
 
       console.log('播放数据获取成功:', response)
+      return true
     } else {
       throw new Error('播放数据格式错误')
     }
@@ -173,9 +195,21 @@ const fetchPlayData = async () => {
   } catch (error) {
     console.error('获取播放数据失败:', error)
     ElMessage.error('获取播放信息失败: ' + error.message)
+    return false
   } finally {
     isLoading.value = false
   }
+}
+
+const selectPlaybackSource = async (sourceKey) => {
+  if (sourceKey === activeSource.value || isSwitchingSource.value) return
+
+  isSwitchingSource.value = true
+  const loaded = await fetchPlayData(sourceKey)
+  if (loaded) {
+    ElMessage.success(`已切换到${playData.value?.sourceName || playbackSources.value[sourceKey] || '备用'}播放源`)
+  }
+  isSwitchingSource.value = false
 }
 
 // 选择剧集
@@ -230,8 +264,8 @@ const recordWatchHistory = async (episodeIndex, episodeName) => {
       externalAnimeCover: animeCover.value || playData.value?.cover || '',
       externalEpisodeName: episodeName,
       externalEpisodeIndex: episodeIndex + 1,  // 转换为1-based索引
-      sourceKey: 'lzzy',
-      sourceName: '量子资源',
+      sourceKey: playData.value?.sourceKey || activeSource.value,
+      sourceName: playData.value?.sourceName || playbackSources.value[activeSource.value] || '量子资源',
       watchProgress: 0,
       totalDuration: 0
     })
@@ -875,6 +909,48 @@ onUnmounted(() => {
   border: 1px solid var(--theme-border); /* 使用主题边框色 */
 }
 
+.source-selector {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 12px 14px;
+  border: 1px solid var(--theme-border);
+  border-radius: 10px;
+  background: var(--theme-background);
+}
+
+.source-label {
+  flex: 0 0 auto;
+  padding-top: 6px;
+  color: var(--theme-text-secondary);
+  font-size: 0.9rem;
+}
+
+.source-list {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.source-btn {
+  margin: 0;
+  border-radius: 7px;
+}
+
+.source-selector :deep(.el-button) {
+  background: var(--theme-background) !important;
+  border: 1px solid var(--theme-border) !important;
+  color: var(--theme-text-primary) !important;
+}
+
+.source-selector :deep(.el-button--primary) {
+  background: var(--theme-gradient) !important;
+  border-color: transparent !important;
+  color: #fff !important;
+}
+
 .episode-selector h3 {
   margin: 0 0 18px 0;
   color: var(--theme-text-primary); /* 使用主题文字颜色 */
@@ -1112,6 +1188,18 @@ onUnmounted(() => {
     height: auto;
     aspect-ratio: 16 / 9;
     border-radius: 8px;
+  }
+
+  .source-selector {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 14px;
+    padding: 12px;
+  }
+
+  .source-label {
+    padding-top: 0;
   }
 
   .episode-selector {

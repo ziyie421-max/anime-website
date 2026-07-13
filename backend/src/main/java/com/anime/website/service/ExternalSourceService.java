@@ -15,6 +15,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -33,6 +34,36 @@ public class ExternalSourceService {
     private static final String LZZY_API_BASE = "https://cj.lziapi.com/api.php/provide/vod/";
     private static final String SOURCE_KEY = "lzzy";
     private static final String SOURCE_NAME = "🎥┃量子┃资源";
+
+    /**
+     * 可用于网页播放的标准 VOD 接口白名单。
+     *
+     * 仅保留 type=1 且已验证返回标准 JSON 的接口。TVBox 配置中的 JS、Python、JAR
+     * 以及 csp_* 插件都不会被读取或执行。
+     */
+    private static final Map<String, PlaybackSource> PLAYBACK_SOURCES = createPlaybackSources();
+
+    private static Map<String, PlaybackSource> createPlaybackSources() {
+        Map<String, PlaybackSource> sources = new LinkedHashMap<>();
+        addPlaybackSource(sources, SOURCE_KEY, SOURCE_NAME, LZZY_API_BASE);
+        addPlaybackSource(sources, "ffzy", "非凡资源", "http://cj.ffzyapi.com/api.php/provide/vod/");
+        addPlaybackSource(sources, "hhzy", "豪华资源", "https://hhzyapi.com/api.php/provide/vod/");
+        addPlaybackSource(sources, "suoni", "索尼资源", "https://suoniapi.com/api.php/provide/vod/");
+        addPlaybackSource(sources, "ikun", "爱坤资源", "https://ikunzyapi.com/api.php/provide/vod/from/ikm3u8/at/json");
+        addPlaybackSource(sources, "guangsu", "光速资源", "https://api.guangsuapi.com/api.php/provide/vod/");
+        addPlaybackSource(sources, "modu", "魔都资源", "https://www.moduzy.com/api.php/provide/vod/");
+        addPlaybackSource(sources, "hongniu", "红牛资源", "https://www.hongniuzy2.com/api.php/provide/vod/");
+        addPlaybackSource(sources, "baidu", "百度资源", "https://api.apibdzy.com/api.php/provide/vod/");
+        addPlaybackSource(sources, "jisu", "极速资源", "https://jszyapi.com/api.php/provide/vod/at/json");
+        addPlaybackSource(sources, "huya", "虎牙资源", "https://www.huyaapi.com/api.php/provide/vod/");
+        addPlaybackSource(sources, "xinlang", "新浪资源", "https://api.xinlangapi.com/xinlangapi.php/provide/vod/");
+        addPlaybackSource(sources, "1080zy", "1080资源", "https://api.1080zyku.com/inc/apijson.php");
+        return sources;
+    }
+
+    private static void addPlaybackSource(Map<String, PlaybackSource> sources, String key, String name, String apiUrl) {
+        sources.put(key, new PlaybackSource(key, name, apiUrl));
+    }
 
     // 动漫分类映射 - 使用索尼资源的正确动漫分类ID
     private static final Map<String, String> ANIME_CATEGORIES = new HashMap<>();
@@ -199,6 +230,33 @@ public class ExternalSourceService {
     }
 
     /**
+     * 获取指定播放源的剧集。备用源使用原标题检索，因为各站的 vodId 并不通用。
+     */
+    public ExternalAnimeResponse getAnimeForPlayback(String vodId, String sourceKey) {
+        if (sourceKey == null || SOURCE_KEY.equals(sourceKey)) {
+            return getAnimeDetail(vodId);
+        }
+
+        PlaybackSource source = PLAYBACK_SOURCES.get(sourceKey);
+        if (source == null) {
+            log.warn("拒绝未在白名单中的播放源: {}", sourceKey);
+            return createEmptyResponse();
+        }
+
+        ExternalAnimeResponse primaryResponse = getAnimeDetail(vodId);
+        if (primaryResponse.getCode() != 1 || primaryResponse.getList() == null || primaryResponse.getList().isEmpty()) {
+            return primaryResponse;
+        }
+
+        String title = primaryResponse.getList().get(0).getVodName();
+        if (title == null || title.trim().isEmpty()) {
+            return createEmptyResponse();
+        }
+
+        return getAnimeDetailByTitle(source, title);
+    }
+
+    /**
      * 从指定资源源获取动漫详情
      */
     private ExternalAnimeResponse getAnimeDetailFromSource(String apiUrl, String sourceKey, String vodId) {
@@ -247,6 +305,72 @@ public class ExternalSourceService {
 
         log.error("获取动漫详情的所有重试都失败 - ID: {}", vodId);
         return createEmptyResponse();
+    }
+
+    /**
+     * 通过标题从标准 MacCMS/VOD 接口获取详情。只接受服务端定义的白名单源。
+     */
+    private ExternalAnimeResponse getAnimeDetailByTitle(PlaybackSource source, String title) {
+        for (int attempt = 1; attempt <= 2; attempt++) {
+            try {
+                String url = UriComponentsBuilder.fromHttpUrl(source.apiUrl)
+                        .queryParam("ac", "detail")
+                        .queryParam("wd", title.trim())
+                        .toUriString();
+
+                HttpHeaders headers = new HttpHeaders();
+                headers.set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
+                headers.set("Accept", "application/json, text/plain, */*");
+                headers.set("Accept-Language", "zh-CN,zh;q=0.9,en;q=0.8");
+
+                ResponseEntity<String> response = restTemplate.exchange(
+                        url, HttpMethod.GET, new HttpEntity<String>(headers), String.class);
+                if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+                    continue;
+                }
+
+                ExternalAnimeResponse result = objectMapper.readValue(response.getBody(), ExternalAnimeResponse.class);
+                ExternalAnimeResponse.ExternalAnimeItem matched = findBestTitleMatch(result.getList(), title);
+                if (result.getCode() == 1 && matched != null) {
+                    matched.setSourceKey(source.key);
+                    matched.setSourceName(source.name);
+                    List<ExternalAnimeResponse.ExternalAnimeItem> singleResult = new ArrayList<>();
+                    singleResult.add(matched);
+                    result.setList(singleResult);
+                    return result;
+                }
+            } catch (Exception e) {
+                log.warn("备用播放源查询失败 ({}/2) - {}: {}", attempt, source.key, e.getMessage());
+            }
+        }
+
+        log.info("备用播放源未找到同名条目 - {}: {}", source.key, title);
+        return createEmptyResponse();
+    }
+
+    private ExternalAnimeResponse.ExternalAnimeItem findBestTitleMatch(
+            List<ExternalAnimeResponse.ExternalAnimeItem> items, String title) {
+        if (items == null || items.isEmpty()) {
+            return null;
+        }
+
+        String expected = normalizeTitle(title);
+        for (ExternalAnimeResponse.ExternalAnimeItem item : items) {
+            if (expected.equals(normalizeTitle(item.getVodName()))) {
+                return item;
+            }
+        }
+        for (ExternalAnimeResponse.ExternalAnimeItem item : items) {
+            String candidate = normalizeTitle(item.getVodName());
+            if (!candidate.isEmpty() && (candidate.contains(expected) || expected.contains(candidate))) {
+                return item;
+            }
+        }
+        return null;
+    }
+
+    private String normalizeTitle(String title) {
+        return title == null ? "" : title.toLowerCase().replaceAll("[\\p{P}\\p{S}\\s]+", "");
     }
 
     /**
@@ -334,12 +458,26 @@ public class ExternalSourceService {
     }
 
     /**
-     * 获取支持的资源源列表 - 只返回量子资源
+     * 获取支持的播放源列表。
      */
     public Map<String, String> getSupportedSources() {
-        Map<String, String> sources = new HashMap<>();
-        sources.put(SOURCE_KEY, SOURCE_NAME);
+        Map<String, String> sources = new LinkedHashMap<>();
+        for (PlaybackSource source : PLAYBACK_SOURCES.values()) {
+            sources.put(source.key, source.name);
+        }
         return sources;
+    }
+
+    private static class PlaybackSource {
+        private final String key;
+        private final String name;
+        private final String apiUrl;
+
+        private PlaybackSource(String key, String name, String apiUrl) {
+            this.key = key;
+            this.name = name;
+            this.apiUrl = apiUrl;
+        }
     }
 
     /**
