@@ -47,6 +47,9 @@
           </el-button>
         </div>
       </div>
+      <div class="source-checking" v-else-if="isCheckingSources">
+        正在查找可用备用源…
+      </div>
 
       <!-- 剧集选择 - 移到播放器下方 -->
       <div class="episode-selector" v-if="currentEpisodes.length > 0">
@@ -135,8 +138,11 @@ const playerStatus = ref(null)
 const watchHistoryId = ref(null)  // 当前观看历史记录 ID
 const activeSource = ref('lzzy')
 const isSwitchingSource = ref(false)
+const availablePlaybackSources = ref({})
+const isCheckingSources = ref(false)
+const sourceCheckId = ref(0)
 
-const playbackSources = computed(() => playData.value?.playbackSources || {})
+const playbackSources = computed(() => availablePlaybackSources.value)
 
 // 备用源的线路名并不固定，优先选择包含 m3u8 地址的线路。
 const currentEpisodes = computed(() => {
@@ -149,6 +155,40 @@ const currentEpisodes = computed(() => {
   )
   return hlsEpisodes || sources[0] || []
 })
+
+const hasPlayableEpisodes = (response) => Object.values(response?.playUrls || {})
+  .some(episodes => Array.isArray(episodes) && episodes.length > 0)
+
+const discoverMatchingSources = async (id, response) => {
+  const checkId = ++sourceCheckId.value
+  const sourceEntries = Object.entries(response.playbackSources || {})
+    .filter(([sourceKey]) => sourceKey !== response.sourceKey)
+
+  isCheckingSources.value = sourceEntries.length > 0
+  let nextIndex = 0
+
+  const worker = async () => {
+    while (nextIndex < sourceEntries.length) {
+      const [sourceKey, sourceName] = sourceEntries[nextIndex++]
+      try {
+        const sourceResponse = await externalAPI.getPlayUrls(id, sourceKey)
+        if (checkId === sourceCheckId.value && hasPlayableEpisodes(sourceResponse)) {
+          availablePlaybackSources.value = {
+            ...availablePlaybackSources.value,
+            [sourceKey]: sourceResponse.sourceName || sourceName
+          }
+        }
+      } catch (_) {
+        // 当前动漫不在该源中时后端会返回 404；不展示该按钮。
+      }
+    }
+  }
+
+  await Promise.all([worker(), worker(), worker()])
+  if (checkId === sourceCheckId.value) {
+    isCheckingSources.value = false
+  }
+}
 
 // 获取播放数据
 const fetchPlayData = async (source = activeSource.value) => {
@@ -173,6 +213,13 @@ const fetchPlayData = async (source = activeSource.value) => {
       activeSource.value = response.sourceKey || source
       animeTitle.value = response.title || animeTitle.value
       animeCover.value = response.cover || ''  // 保存封面
+
+      if (source === 'lzzy') {
+        availablePlaybackSources.value = {
+          [response.sourceKey || 'lzzy']: response.sourceName || '量子资源'
+        }
+        void discoverMatchingSources(id, response)
+      }
 
       await nextTick()
       const episodes = currentEpisodes.value
@@ -907,6 +954,12 @@ onUnmounted(() => {
   border-radius: 12px;
   box-shadow: var(--theme-shadow-light); /* 使用主题阴影 */
   border: 1px solid var(--theme-border); /* 使用主题边框色 */
+}
+
+.source-checking {
+  margin-top: 20px;
+  color: var(--theme-text-secondary);
+  font-size: 0.9rem;
 }
 
 .source-selector {
