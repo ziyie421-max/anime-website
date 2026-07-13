@@ -7,6 +7,7 @@
     <div class="search-section">
       <div class="search-container">
         <el-input
+          ref="searchInput"
           v-model="searchKeyword"
           placeholder="搜索动漫名称..."
           size="large"
@@ -26,16 +27,19 @@
       </div>
     </div>
 
+    <p v-if="searchKeyword && !isLoading" class="result-summary" aria-live="polite">
+      当前页找到 {{ animeList.length }} 部与“{{ searchKeyword }}”相关的动漫
+    </p>
 
 
     <!-- 动漫列表 -->
     <div class="anime-list-section" v-loading="isLoading">
       <div class="anime-grid">
-        <div
+        <router-link
           v-for="anime in animeList"
           :key="anime.vod_id"
           class="anime-card"
-          @click="viewAnimeDetail(anime)"
+          :to="{ name: 'NewAnimeDetail', params: { id: anime.vod_id } }"
         >
           <!-- 动漫海报 -->
           <div class="anime-poster">
@@ -43,6 +47,8 @@
               v-if="anime.vod_pic"
               :src="anime.vod_pic"
               :alt="anime.vod_name"
+              loading="lazy"
+              decoding="async"
               @error="handleImageError"
             />
             <div v-else class="placeholder-cover">
@@ -72,7 +78,7 @@
               <span v-if="anime.type_name">{{ anime.type_name }}</span>
             </p>
           </div>
-        </div>
+        </router-link>
       </div>
 
       <!-- 空状态 -->
@@ -115,7 +121,7 @@
 
 <script setup>
 // 导入Vue相关功能
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 // 导入Element Plus组件和消息提示
 import { ElMessage } from 'element-plus'
@@ -140,6 +146,12 @@ const totalResults = ref(0)
 const animeList = ref([])
 const animeData = ref(null) // 存储API响应数据用于分页
 const allFetchedData = ref([]) // 存储所有已获取的数据
+const searchInput = ref(null)
+
+const focusSearchInput = async () => {
+  await nextTick()
+  searchInput.value?.focus()
+}
 
 // 从URL参数初始化搜索关键词
 const initFromRoute = () => {
@@ -306,15 +318,6 @@ const handleSizeChange = (size) => {
   performSearch(1)
 }
 
-// 查看动漫详情
-const viewAnimeDetail = (anime) => {
-  console.log('查看动漫详情:', anime.vod_name)
-  router.push({
-    name: 'NewAnimeDetail',
-    params: { id: anime.vod_id }
-  })
-}
-
 // 格式化时间
 const formatTime = (timeStr) => {
   if (!timeStr) return ''
@@ -357,9 +360,14 @@ watch(() => route.query.search, (newSearch) => {
   }
 }, { immediate: false })
 
+watch(() => route.query.focus, (shouldFocus) => {
+  if (shouldFocus) focusSearchInput()
+}, { immediate: false })
+
 // 组件挂载时初始化
 onMounted(() => {
   initFromRoute()
+  if (route.query.focus) focusSearchInput()
   if (searchKeyword.value.trim()) {
     console.log('📡 组件挂载时发现搜索关键词，自动执行搜索:', searchKeyword.value)
     performSearch(1, searchKeyword.value)
@@ -519,11 +527,16 @@ onMounted(() => {
   margin-bottom: 30px;
 }
 
+.result-summary {
+  margin: 0 20px 8px;
+  color: var(--theme-text-secondary);
+}
+
 /* 动漫网格布局 - 与其他页面保持一致 */
 .anime-grid {
   display: grid;
-  grid-template-columns: repeat(4, 300px); /* 4列，每列宽度300px */
-  gap: 40px; /* 调整间距为40px，适合4列布局 */
+  grid-template-columns: repeat(auto-fit, minmax(220px, 280px));
+  gap: 28px;
   padding: 20px;
   justify-content: center; /* 居中显示 */
 }
@@ -537,6 +550,13 @@ onMounted(() => {
   transition: all 0.3s ease;
   box-shadow: var(--theme-shadow-light);
   border: 1px solid var(--theme-border);
+  color: inherit;
+  text-decoration: none;
+}
+
+.anime-card:focus-visible {
+  outline: 3px solid var(--theme-primary);
+  outline-offset: 3px;
 }
 
 .anime-card:hover {
@@ -669,8 +689,8 @@ onMounted(() => {
 /* 响应式设计 */
 @media (max-width: 1200px) {
   .anime-grid {
-    grid-template-columns: repeat(3, 280px); /* 中等屏幕3列，宽度280px */
-    gap: 30px; /* 中等屏幕间距30px */
+    grid-template-columns: repeat(auto-fit, minmax(210px, 280px));
+    gap: 24px;
     padding: 20px;
   }
 }

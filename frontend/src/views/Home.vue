@@ -10,7 +10,7 @@
 
           <!-- 海报区域 -->
           <div class="banner-poster">
-            <img :src="item.image" :alt="item.title" />
+            <img :src="item.image" :alt="item.title" fetchpriority="high" decoding="async" />
           </div>
 
           <!-- 文字内容区域 -->
@@ -48,9 +48,9 @@
           </el-button> -->
         </div>
         <div class="anime-grid">
-          <div v-for="anime in popularAnime" :key="anime.id" class="anime-card" @click="goToAnime(anime)">
+          <router-link v-for="anime in popularAnime" :key="anime.id" class="anime-card" :to="{ name: 'NewAnimeDetail', params: { id: anime.id } }">
             <div class="anime-poster">
-              <img :src="anime.poster" :alt="anime.title" />
+              <img :src="anime.poster" :alt="anime.title" loading="lazy" decoding="async" />
               <div class="anime-overlay">
                 <el-icon class="play-icon"><VideoPlay /></el-icon>
                 <!-- 悬停时显示年份 - 位置在底部 -->
@@ -67,7 +67,7 @@
               <p class="anime-meta">{{ anime.year }} · {{ anime.category }}</p>
               <!-- 移除星级评分显示 -->
             </div>
-          </div>
+          </router-link>
         </div>
       </section>
 
@@ -83,9 +83,9 @@
           </el-button> -->
         </div>
         <div class="anime-grid">
-          <div v-for="anime in latestAnime" :key="anime.id" class="anime-card" @click="goToAnime(anime)">
+          <router-link v-for="anime in latestAnime" :key="anime.id" class="anime-card" :to="{ name: 'NewAnimeDetail', params: { id: anime.id } }">
             <div class="anime-poster">
-              <img :src="anime.poster" :alt="anime.title" />
+              <img :src="anime.poster" :alt="anime.title" loading="lazy" decoding="async" />
               <div class="anime-overlay">
                 <el-icon class="play-icon"><VideoPlay /></el-icon>
                 <!-- 悬停时显示年份 - 位置在底部 -->
@@ -97,10 +97,10 @@
             </div>
             <div class="anime-info">
               <h4 class="anime-title">{{ anime.title }}</h4>
-              <p class="anime-meta">更新至第{{ anime.latestEpisode }}集</p>
+              <p class="anime-meta">{{ anime.latestEpisode || '暂无更新' }}</p>
               <!-- 移除星级评分显示 -->
             </div>
-          </div>
+          </router-link>
         </div>
       </section>
 
@@ -427,39 +427,34 @@ onUnmounted(() => {
   z-index: 2;
   position: relative;
   display: flex;
-  align-items: flex-start; /* 改为顶部对齐 */
-  padding-top: 440px; /* 大幅增加顶部padding，为-400px的margin腾出空间 */
+  align-items: center;
 }
 
 .banner-text h1 {
-  font-size: 3.5rem;
+  font-size: clamp(2.25rem, 4vw, 3.5rem);
   font-weight: 700;
-  margin-bottom: 2.5rem;
+  margin: 0 0 1.25rem;
   color: var(--theme-banner-text); /* 使用轮播图专用颜色 */
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
   line-height: 1.2;
-  margin-top: -400px; /* 大幅上移到轮播区域顶部附近 */
 }
 
 .banner-description {
   font-size: 1.4rem;
-  margin-bottom: 2.5rem;
+  margin: 0 0 2rem;
   color: var(--theme-banner-text-secondary) !important; /* 使用轮播图专用次要颜色，加强优先级 */
   line-height: 1.6;
-  margin-top: 60px; /* 让简介下移 */
-  max-width: 860px; /* 再增加宽度，让每行多显示约三个字 */
+  max-width: 60ch;
   word-wrap: break-word; /* 确保长单词能够换行 */
 }
 
 .banner-actions {
   display: flex;
   gap: 20px;
-  position: absolute; /* 使用绝对定位固定按钮位置 */
-  bottom: 80px; /* 距离轮播区域底部80px的固定位置 */
-  left: 40px; /* 与文字内容左对齐 */
 }
 
 .info-btn {
+  min-height: 44px;
   padding: 12px 30px;
   font-size: 1.1rem;
   border-radius: 8px;
@@ -588,6 +583,13 @@ onUnmounted(() => {
   transition: all 0.3s ease;
   box-shadow: var(--theme-shadow-light); /* 使用主题阴影 */
   border: 1px solid var(--theme-border); /* 添加主题边框 */
+  color: inherit;
+  text-decoration: none;
+}
+
+.anime-card:focus-visible {
+  outline: 3px solid var(--theme-primary);
+  outline-offset: 3px;
 }
 
 .anime-card:hover {
@@ -764,6 +766,25 @@ onUnmounted(() => {
 
 /* 响应式设计 */
 @media (max-width: 1200px) {
+  .banner-poster {
+    width: 300px;
+    margin-left: 20px;
+    padding: 20px;
+  }
+
+  .banner-poster img {
+    width: 230px;
+    height: 345px;
+  }
+
+  .banner-content {
+    padding: 32px 36px 32px 24px;
+  }
+
+  .banner-description {
+    font-size: 1.1rem;
+  }
+
   .content-container {
     max-width: 1000px;
     padding: 0 30px;

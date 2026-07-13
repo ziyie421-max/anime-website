@@ -1,9 +1,9 @@
 <!-- 主应用组件 - 包含导航栏和路由出口 -->
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from './stores/auth'
-import { Search, User, Setting, VideoPlay, Close, Sunny, Moon, Bell } from '@element-plus/icons-vue'
+import { Search, User, Setting, VideoPlay, Close, Sunny, Moon, Bell, HomeFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { externalAPI } from '@/services/api'
 // 导入动漫筛选工具
@@ -14,6 +14,7 @@ import { updateFavicon } from '@/utils/favicon.js'
 import { getUnreadCount } from '@/api/notification'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
 // 搜索相关数据
@@ -33,6 +34,9 @@ let notificationTimer = null
 // 计算属性
 const isLoggedIn = computed(() => authStore.isLoggedIn)
 const userInfo = computed(() => authStore.user)
+const isVideoPlayerRoute = computed(() => route.name === 'VideoPlayer')
+const isNotificationRoute = computed(() => route.path.startsWith('/user/notifications'))
+const isUserRoute = computed(() => route.path.startsWith('/user') && !isNotificationRoute.value)
 
 // 获取未读通知数量
 const fetchUnreadCount = async () => {
@@ -133,6 +137,7 @@ const handleSearch = () => {
 
   // 关闭搜索结果下拉框
   closeSearchResults()
+  isSearchExpanded.value = false
 
   // 跳转到搜索结果页面
   router.push(`/search?search=${encodeURIComponent(keyword)}`)
@@ -156,18 +161,6 @@ const toggleSearch = () => {
       input && input.focus()
     }, 100)
   }
-}
-
-// 查看动漫详情
-const viewAnimeDetail = (anime) => {
-  console.log('查看动漫详情:', anime.vod_name)
-  // 关闭搜索结果
-  closeSearchResults()
-  // 跳转到动漫详情页面
-  router.push({
-    name: 'NewAnimeDetail',
-    params: { id: anime.vod_id }
-  })
 }
 
 // 点击外部关闭搜索结果
@@ -309,6 +302,20 @@ const handleCommand = (command) => {
   }
 }
 
+const openMobileSearch = () => {
+  closeSearchResults()
+  isSearchExpanded.value = false
+  router.push({ name: 'SearchResults', query: { focus: '1' } })
+}
+
+const openProtectedPage = (path) => {
+  if (!isLoggedIn.value) {
+    router.push({ path: '/login', query: { redirect: path } })
+    return
+  }
+  router.push(path)
+}
+
 // 导航菜单 - 已移除日漫/国漫/美漫分类入口，用户可通过点击 Logo 回到首页
 const menuItems = []
 
@@ -372,9 +379,9 @@ onMounted(async () => {
             <div class="search-results-header">
               <span v-if="isSearching">正在搜索...</span>
               <span v-else>搜索结果 ({{ searchResults.length }})</span>
-              <el-icon @click="closeSearchResults" class="close-icon">
+              <el-button text circle aria-label="关闭搜索结果" class="close-icon" @click="closeSearchResults">
                 <Close />
-              </el-icon>
+              </el-button>
             </div>
 
             <div v-if="!isSearching && searchResults.length === 0" class="no-results">
@@ -383,11 +390,12 @@ onMounted(async () => {
             </div>
 
             <div v-else class="search-results-list">
-              <div
+              <router-link
                 v-for="anime in searchResults"
                 :key="anime.vod_id"
                 class="search-result-item"
-                @click="viewAnimeDetail(anime)"
+                :to="{ name: 'NewAnimeDetail', params: { id: anime.vod_id } }"
+                @click="closeSearchResults"
               >
                 <div class="result-poster">
                   <img
@@ -408,7 +416,7 @@ onMounted(async () => {
                   </p>
                   <p class="result-desc" v-if="anime.vod_blurb">{{ anime.vod_blurb }}</p>
                 </div>
-              </div>
+              </router-link>
             </div>
 
             <div v-if="searchResults.length > 0" class="search-results-footer">
@@ -488,6 +496,27 @@ onMounted(async () => {
         <p>&copy; AnimeS~. All rights reserved.</p>
       </div>
     </footer>
+
+    <nav v-if="!isVideoPlayerRoute" class="mobile-bottom-nav" aria-label="移动端主导航">
+      <router-link to="/" class="mobile-nav-item" exact-active-class="is-active" aria-label="首页">
+        <el-icon><HomeFilled /></el-icon>
+        <span>首页</span>
+      </router-link>
+      <button type="button" class="mobile-nav-item" :class="{ 'is-active': route.name === 'SearchResults' }" aria-label="搜索" @click="openMobileSearch">
+        <el-icon><Search /></el-icon>
+        <span>搜索</span>
+      </button>
+      <button type="button" class="mobile-nav-item" :class="{ 'is-active': isNotificationRoute }" aria-label="通知" @click="openProtectedPage('/user/notifications')">
+        <el-badge :value="unreadNotificationCount" :hidden="unreadNotificationCount === 0" :max="99">
+          <el-icon><Bell /></el-icon>
+        </el-badge>
+        <span>通知</span>
+      </button>
+      <button type="button" class="mobile-nav-item" :class="{ 'is-active': isUserRoute }" aria-label="我的" @click="openProtectedPage('/user')">
+        <el-icon><User /></el-icon>
+        <span>我的</span>
+      </button>
+    </nav>
   </div>
 </template>
 
@@ -625,8 +654,8 @@ onMounted(async () => {
 
 /* 去掉输入框选中/聚焦时的彩色边框（图2问题） */
 .search-input :deep(.el-input__inner:focus) {
-  outline: none !important;
-  box-shadow: none !important;
+  outline: 2px solid var(--theme-primary) !important;
+  outline-offset: 2px;
 }
 
 .search-input :deep(.el-input__inner::placeholder) {
@@ -641,7 +670,7 @@ onMounted(async () => {
 /* 搜索框聚焦时的样式：去掉彩色方框/光晕，只保留背景变化 */
 .search-input :deep(.el-input__wrapper:focus-within) {
   background: rgba(255, 255, 255, 0.3) !important; /* 聚焦时背景更亮 */
-  box-shadow: none !important; /* 去掉聚焦时的彩色方框 */
+  box-shadow: 0 0 0 2px var(--theme-primary) !important;
   outline: none !important;
 }
 
@@ -725,7 +754,6 @@ onMounted(async () => {
 }
 
 .close-icon {
-  cursor: pointer;
   color: #666;
   transition: color 0.3s ease;
 }
@@ -760,6 +788,13 @@ onMounted(async () => {
   cursor: pointer;
   transition: all 0.3s ease;
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  color: inherit;
+  text-decoration: none;
+}
+
+.search-result-item:focus-visible {
+  outline: 3px solid var(--theme-primary);
+  outline-offset: -3px;
 }
 
 .search-result-item:hover {
@@ -959,6 +994,10 @@ onMounted(async () => {
   font-size: 0.95rem;
 }
 
+.mobile-bottom-nav {
+  display: none;
+}
+
 /* 响应式设计 */
 @media (max-width: 1200px) {
   .header-container {
@@ -971,11 +1010,16 @@ onMounted(async () => {
 }
 
 @media (max-width: 768px) {
-  /* 单行紧凑导航：logo + 搜索框(占满中间) + 主题 + 用户区 */
+  #app {
+    padding-bottom: calc(68px + env(safe-area-inset-bottom));
+  }
+
+  /* 移动端顶部只保留站点标识与主题切换，主导航统一放到底部。 */
   .header-container {
     height: 54px;
     padding: 0 12px;
     gap: 8px;
+    justify-content: space-between;
   }
 
   .logo {
@@ -988,6 +1032,11 @@ onMounted(async () => {
   }
 
   .nav-menu {
+    display: none;
+  }
+
+  .search-box,
+  .user-area {
     display: none;
   }
 
@@ -1078,6 +1127,59 @@ onMounted(async () => {
   .user-info {
     padding: 4px 6px;
     gap: 4px;
+  }
+
+  .mobile-bottom-nav {
+    position: fixed;
+    z-index: 1100;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    min-height: 64px;
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+    background: var(--theme-background);
+    border-top: 1px solid var(--theme-border);
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08);
+  }
+
+  .mobile-nav-item {
+    min-height: 48px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    padding: 2px 0;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--theme-text-secondary);
+    font: inherit;
+    font-size: 0.72rem;
+    line-height: 1.1;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .mobile-nav-item :deep(.el-icon) {
+    font-size: 22px;
+  }
+
+  .mobile-nav-item.is-active {
+    background: var(--theme-background-soft);
+    color: var(--theme-primary);
+    font-weight: 700;
+  }
+
+  .mobile-nav-item:focus-visible {
+    outline: 3px solid var(--theme-primary);
+    outline-offset: -3px;
+  }
+
+  .mobile-nav-item :deep(.el-badge__content) {
+    background-color: #ff4757;
   }
 }
 </style>
