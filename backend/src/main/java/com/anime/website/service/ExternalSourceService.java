@@ -46,6 +46,11 @@ public class ExternalSourceService {
     private static Map<String, PlaybackSource> createPlaybackSources() {
         Map<String, PlaybackSource> sources = new LinkedHashMap<>();
         addPlaybackSource(sources, SOURCE_KEY, SOURCE_NAME, LZZY_API_BASE);
+        addPlaybackSource(sources, "360zy", "360资源", "https://360zy.com/api.php/provide/vod/");
+        addPlaybackSource(sources, "jinying", "金鹰资源", "https://jyzyapi.com/api.php/provide/vod/");
+        addPlaybackSource(sources, "subo", "速播资源", "https://subocaiji.com/api.php/provide/vod/");
+        addPlaybackSource(sources, "yinghua", "樱花资源", "https://m3u8.apiyhzy.com/api.php/provide/vod/");
+        addPlaybackSource(sources, "dytt", "电影天堂", "http://caiji.dyttzyapi.com/api.php/provide/vod/");
         addPlaybackSource(sources, "ffzy", "非凡资源", "http://cj.ffzyapi.com/api.php/provide/vod/");
         addPlaybackSource(sources, "hhzy", "豪华资源", "https://hhzyapi.com/api.php/provide/vod/");
         addPlaybackSource(sources, "suoni", "索尼资源", "https://suoniapi.com/api.php/provide/vod/");

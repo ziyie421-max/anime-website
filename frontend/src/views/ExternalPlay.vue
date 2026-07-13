@@ -448,26 +448,31 @@ const setupVideoPlayer = () => {
           const videoError = dplayer.value.video.error
           console.error('视频播放致命错误:', videoError)
 
-          // 根据错误代码显示不同的提示
-          let errorMessage = '视频播放出错'
+          // 浏览器的 MediaError 不能提供真实的 HTTP 状态码，提示只说明可确认的现象。
+          let errorTitle = '视频加载失败'
+          let errorMessage = '当前视频源无法加载，可能是网络、VPN、CDN 访问限制或跨域限制。请切换播放源后重试。'
           switch (videoError.code) {
             case 1: // MEDIA_ERR_ABORTED
-              errorMessage = '视频播放被中止'
+              errorTitle = '已停止加载视频'
+              errorMessage = '当前视频的加载已被中止。请重新播放，或切换播放源后重试。'
               break
             case 2: // MEDIA_ERR_NETWORK
-              errorMessage = '网络错误，请检查网络连接'
+              errorTitle = '视频源连接失败'
+              errorMessage = '无法连接到视频源，可能受网络、VPN 或 CDN 访问限制影响。请切换播放源后重试。'
               break
             case 3: // MEDIA_ERR_DECODE
-              errorMessage = '视频解码错误，请尝试其他播放源'
+              errorTitle = '视频无法解码'
+              errorMessage = '视频已加载，但当前浏览器无法解码该媒体。请切换播放源后重试。'
               break
             case 4: // MEDIA_ERR_SRC_NOT_SUPPORTED
-              errorMessage = '视频格式不支持，请尝试其他播放源'
+              errorTitle = '视频源无法加载'
+              errorMessage = '当前视频源无法在浏览器中加载，可能是源失效、CDN 拒绝访问或跨域限制。请切换播放源后重试。'
               break
             default:
-              errorMessage = '未知播放错误'
+              break
           }
 
-          setPlayerStatus('error', '播放错误', errorMessage)
+          setPlayerStatus('error', errorTitle, errorMessage)
           ElMessage.error(errorMessage)
         } else {
           // 非致命错误，只记录日志
@@ -479,8 +484,9 @@ const setupVideoPlayer = () => {
         // 延迟检查，给播放器一些恢复时间
         setTimeout(() => {
           if (dplayer.value && dplayer.value.video && dplayer.value.video.error) {
-            setPlayerStatus('error', '播放错误', '视频播放出错，请尝试其他播放源')
-            ElMessage.error('视频播放出错，请尝试其他播放源')
+            const errorMessage = '当前视频源无法加载，可能是网络、VPN、CDN 访问限制或跨域限制。请切换播放源后重试。'
+            setPlayerStatus('error', '视频加载失败', errorMessage)
+            ElMessage.error(errorMessage)
           }
         }, 1000)
       }
