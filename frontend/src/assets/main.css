@@ -150,12 +150,12 @@ body {
   min-width: 0;
   min-height: 0;
   padding: 10px 16px;
-  border: 1px solid var(--theme-border) !important;
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
   border-radius: 12px !important;
-  background: rgba(255, 255, 255, 0.96) !important;
-  box-shadow: var(--theme-shadow-light) !important;
+  background: linear-gradient(135deg, var(--theme-primary-light), var(--theme-primary)) !important;
+  box-shadow: 0 8px 24px rgba(var(--theme-primary-rgb), 0.30) !important;
   backdrop-filter: blur(14px);
-  color: var(--theme-text-primary) !important;
+  color: #ffffff !important;
   align-items: center !important;
 }
 
@@ -165,51 +165,51 @@ body {
 
 .el-message__content {
   padding: 0;
-  color: var(--theme-text-primary) !important;
+  color: #ffffff !important;
   font-size: 14px;
   font-weight: 500;
   line-height: 1.45;
   word-break: break-word;
 }
 
-/* 成功、警告、错误共用简约外观；提示文案本身表达状态，避免颜色和图标抢占注意力。 */
+/* 成功、警告、错误均使用当前主题色，不再引入额外的绿色或红色状态色。 */
 .el-message--success {
-  background: rgba(255, 255, 255, 0.96) !important;
+  background: linear-gradient(135deg, var(--theme-primary-light), var(--theme-primary)) !important;
 }
 
 .el-message--warning {
-  background: rgba(255, 255, 255, 0.96) !important;
+  background: linear-gradient(135deg, var(--theme-primary-light), var(--theme-primary)) !important;
 }
 
 .el-message--error {
-  background: rgba(255, 255, 255, 0.96) !important;
+  background: linear-gradient(135deg, var(--theme-primary-light), var(--theme-primary)) !important;
 }
 
 .el-message--info {
-  background: rgba(255, 255, 255, 0.96) !important;
+  background: linear-gradient(135deg, var(--theme-primary-light), var(--theme-primary)) !important;
 }
 
-/* 暗粉主题保持深色表面，仅保留语义色作左侧强调，避免出现刺眼的浅色大块。 */
+/* 暗粉主题沿用同一组件，只通过主题变量切换为粉色。 */
 .theme-dark .el-message {
-  background: rgba(45, 45, 45, 0.96) !important;
-  border-color: var(--theme-border) !important;
-  box-shadow: var(--theme-shadow) !important;
+  background: linear-gradient(135deg, var(--theme-primary-light), var(--theme-primary)) !important;
+  border-color: rgba(255, 255, 255, 0.30) !important;
+  box-shadow: 0 8px 24px rgba(var(--theme-primary-rgb), 0.36) !important;
 }
 
 .theme-dark .el-message--success {
-  background: rgba(45, 45, 45, 0.96) !important;
+  background: linear-gradient(135deg, var(--theme-primary-light), var(--theme-primary)) !important;
 }
 
 .theme-dark .el-message--warning {
-  background: rgba(45, 45, 45, 0.96) !important;
+  background: linear-gradient(135deg, var(--theme-primary-light), var(--theme-primary)) !important;
 }
 
 .theme-dark .el-message--error {
-  background: rgba(45, 45, 45, 0.96) !important;
+  background: linear-gradient(135deg, var(--theme-primary-light), var(--theme-primary)) !important;
 }
 
 .theme-dark .el-message--info {
-  background: rgba(45, 45, 45, 0.96) !important;
+  background: linear-gradient(135deg, var(--theme-primary-light), var(--theme-primary)) !important;
 }
 
 @media (max-width: 768px) {
