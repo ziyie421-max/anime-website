@@ -148,65 +148,45 @@ body {
   box-sizing: border-box;
   width: min(420px, calc(100vw - 32px));
   min-width: 0;
-  min-height: 56px;
-  padding: 13px 16px;
+  min-height: 0;
+  padding: 10px 16px;
   border: 1px solid var(--theme-border) !important;
-  border-left: 4px solid var(--theme-primary) !important;
-  border-radius: 14px !important;
+  border-radius: 12px !important;
   background: rgba(255, 255, 255, 0.96) !important;
   box-shadow: var(--theme-shadow-light) !important;
   backdrop-filter: blur(14px);
   color: var(--theme-text-primary) !important;
-  align-items: flex-start !important;
+  align-items: center !important;
 }
 
 .el-message__icon {
-  margin-top: 2px;
-  font-size: 18px;
+  display: none !important;
 }
 
 .el-message__content {
-  padding: 0 8px 0 10px;
+  padding: 0;
   color: var(--theme-text-primary) !important;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.45;
   word-break: break-word;
 }
 
+/* 成功、警告、错误共用简约外观；提示文案本身表达状态，避免颜色和图标抢占注意力。 */
 .el-message--success {
-  border-left-color: var(--theme-success) !important;
-  background: linear-gradient(90deg, rgba(103, 194, 58, 0.10), rgba(255, 255, 255, 0.96) 42%) !important;
-}
-
-.el-message--success .el-message__icon {
-  color: var(--theme-success) !important;
+  background: rgba(255, 255, 255, 0.96) !important;
 }
 
 .el-message--warning {
-  border-left-color: var(--theme-warning) !important;
-  background: linear-gradient(90deg, rgba(230, 162, 60, 0.11), rgba(255, 255, 255, 0.96) 42%) !important;
-}
-
-.el-message--warning .el-message__icon {
-  color: var(--theme-warning) !important;
+  background: rgba(255, 255, 255, 0.96) !important;
 }
 
 .el-message--error {
-  border-left-color: var(--theme-danger) !important;
-  background: linear-gradient(90deg, rgba(245, 108, 108, 0.11), rgba(255, 255, 255, 0.96) 42%) !important;
-}
-
-.el-message--error .el-message__icon {
-  color: var(--theme-danger) !important;
+  background: rgba(255, 255, 255, 0.96) !important;
 }
 
 .el-message--info {
-  border-left-color: var(--theme-info) !important;
-}
-
-.el-message--info .el-message__icon {
-  color: var(--theme-info) !important;
+  background: rgba(255, 255, 255, 0.96) !important;
 }
 
 /* 暗粉主题保持深色表面，仅保留语义色作左侧强调，避免出现刺眼的浅色大块。 */
@@ -217,29 +197,25 @@ body {
 }
 
 .theme-dark .el-message--success {
-  border-left-color: var(--theme-success) !important;
-  background: linear-gradient(90deg, rgba(149, 212, 117, 0.16), rgba(45, 45, 45, 0.96) 42%) !important;
+  background: rgba(45, 45, 45, 0.96) !important;
 }
 
 .theme-dark .el-message--warning {
-  border-left-color: var(--theme-warning) !important;
-  background: linear-gradient(90deg, rgba(244, 208, 63, 0.16), rgba(45, 45, 45, 0.96) 42%) !important;
+  background: rgba(45, 45, 45, 0.96) !important;
 }
 
 .theme-dark .el-message--error {
-  border-left-color: var(--theme-danger) !important;
-  background: linear-gradient(90deg, rgba(255, 118, 117, 0.16), rgba(45, 45, 45, 0.96) 42%) !important;
+  background: rgba(45, 45, 45, 0.96) !important;
 }
 
 .theme-dark .el-message--info {
-  border-left-color: var(--theme-info) !important;
+  background: rgba(45, 45, 45, 0.96) !important;
 }
 
 @media (max-width: 768px) {
   .el-message {
     width: calc(100vw - 24px);
-    min-height: 52px;
-    padding: 12px 14px;
+    padding: 10px 14px;
   }
 
   .el-message__content {
