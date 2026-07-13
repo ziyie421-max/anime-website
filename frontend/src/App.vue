@@ -236,7 +236,7 @@ const toggleTheme = async () => {
     console.error('❌ 主题切换时favicon更新失败:', error)
   }
 
-  ElMessage.success(`已切换到${isDarkTheme.value ? '暗色粉色' : '蓝白色'}主题`)
+  ElMessage.success(`已切换到${isDarkTheme.value ? '暗粉色' : '蓝白色'}主题`)
 }
 
 // 初始化主题
