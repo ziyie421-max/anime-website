@@ -990,27 +990,27 @@ onUnmounted(() => {
 }
 
 .source-selector {
-  display: flex;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  align-items: center;
   gap: 12px;
   margin-top: 20px;
-  padding: 12px 14px;
+  padding: 16px 20px;
   border: 1px solid var(--theme-border);
   border-radius: 10px;
   background: var(--theme-background);
 }
 
 .source-label {
-  flex: 0 0 auto;
-  padding-top: 6px;
   color: var(--theme-text-secondary);
   font-size: 0.9rem;
+  line-height: 32px;
 }
 
 .source-list {
   display: flex;
-  flex: 1;
   flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
 }
 
@@ -1043,16 +1043,18 @@ onUnmounted(() => {
 
 
 .episode-list {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
   gap: 12px;
   max-height: 300px;
   overflow-y: auto;
-  padding: 5px;
+  padding: 0;
 }
 
 .episode-btn {
-  min-width: 80px;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
   border-radius: 8px;
   transition: all 0.3s ease;
 }
@@ -1078,6 +1080,12 @@ onUnmounted(() => {
   background: var(--theme-gradient) !important;
   border: none !important;
   color: white !important;
+}
+
+@media (min-width: 769px) and (max-width: 1100px) {
+  .episode-list {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
 }
 
 
@@ -1271,15 +1279,15 @@ onUnmounted(() => {
   }
 
   .source-selector {
+    grid-template-columns: 1fr;
     align-items: stretch;
-    flex-direction: column;
     gap: 8px;
     margin-top: 14px;
     padding: 12px;
   }
 
   .source-label {
-    padding-top: 0;
+    line-height: normal;
   }
 
   .episode-selector {
@@ -1295,13 +1303,13 @@ onUnmounted(() => {
   }
 
   .episode-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 8px;
     max-height: 240px;
-    padding: 2px;
+    padding: 0;
   }
 
   .episode-btn {
-    min-width: 58px;
     margin: 0;
   }
 
