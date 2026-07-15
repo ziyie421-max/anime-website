@@ -145,8 +145,14 @@ const sourceCheckId = ref(0)
 // 播放源只展示统一的序号，避免把第三方来源名称直接暴露给用户。
 const playbackSources = computed(() => {
   let alternateSourceIndex = 1
+  const sourceKeys = Object.keys(availablePlaybackSources.value)
+  const orderedSourceKeys = [
+    ...sourceKeys.filter(sourceKey => sourceKey === 'lzzy'),
+    ...sourceKeys.filter(sourceKey => sourceKey === 'dytt'),
+    ...sourceKeys.filter(sourceKey => sourceKey !== 'lzzy' && sourceKey !== 'dytt')
+  ]
 
-  return Object.keys(availablePlaybackSources.value).reduce((sources, sourceKey) => {
+  return orderedSourceKeys.reduce((sources, sourceKey) => {
     if (sourceKey === 'lzzy') {
       sources[sourceKey] = '默认源'
     } else if (sourceKey === 'dytt') {
