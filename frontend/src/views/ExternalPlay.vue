@@ -142,7 +142,21 @@ const availablePlaybackSources = ref({})
 const isCheckingSources = ref(false)
 const sourceCheckId = ref(0)
 
-const playbackSources = computed(() => availablePlaybackSources.value)
+// 播放源只展示统一的序号，避免把第三方来源名称直接暴露给用户。
+const playbackSources = computed(() => {
+  let alternateSourceIndex = 1
+
+  return Object.keys(availablePlaybackSources.value).reduce((sources, sourceKey) => {
+    if (sourceKey === 'lzzy') {
+      sources[sourceKey] = '默认源'
+    } else if (sourceKey === 'dytt') {
+      sources[sourceKey] = '稳定源'
+    } else {
+      sources[sourceKey] = `源${alternateSourceIndex++}`
+    }
+    return sources
+  }, {})
+})
 
 // 备用源的线路名并不固定，优先选择包含 m3u8 地址的线路。
 const currentEpisodes = computed(() => {
@@ -254,7 +268,8 @@ const selectPlaybackSource = async (sourceKey) => {
   isSwitchingSource.value = true
   const loaded = await fetchPlayData(sourceKey)
   if (loaded) {
-    ElMessage.success(`已切换到${playData.value?.sourceName || playbackSources.value[sourceKey] || '备用'}播放源`)
+    const sourceLabel = playbackSources.value[activeSource.value] || '播放源'
+    ElMessage.success(`已切换到${sourceLabel}`)
   }
   isSwitchingSource.value = false
 }
